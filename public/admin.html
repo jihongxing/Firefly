@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Firefly Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-shell">
+  <main class="admin-layout sponsor-admin-layout">
+    <header class="admin-header sponsor-admin-header">
+      <div>
+        <p class="modal-eyebrow">Firefly</p>
+        <h1>赞助运营台</h1>
+        <p class="admin-subtext">管理赞助商主档、投放计划与履约数据，沿用现有 admin token 模型。</p>
+      </div>
+      <div class="admin-actions">
+        <a class="secondary-button link-button" href="/index.html">返回地图</a>
+      </div>
+    </header>
+
+    <section id="adminStatus" class="status-banner hidden" aria-live="polite"></section>
+
+    <section class="admin-card sponsor-console-shell">
+      <div class="admin-card-top sponsor-console-head">
+        <div>
+          <span class="modal-eyebrow">Access</span>
+          <h3>控制台访问</h3>
+          <p class="admin-subtext">支持 query token 直达，也支持在本页补录后继续访问接口。</p>
+        </div>
+      </div>
+      <form id="tokenForm" class="sponsor-inline-form">
+        <label class="field-block sponsor-token-field">
+          <span>Admin token</span>
+          <input id="adminTokenField" name="admin_token" type="password" autocomplete="off" placeholder="firefly-dev-admin">
+        </label>
+        <button class="secondary-button" type="submit">保存 token</button>
+      </form>
+    </section>
+
+    <section class="admin-stats sponsor-kpi-grid" id="adminStats"></section>
+
+    <section class="sponsor-console-grid sponsor-mobile-stack" data-mobile-stack="sponsors">
+      <article class="admin-card sponsor-panel" data-mobile-view-panel="sponsors-list">
+        <div class="admin-card-top sponsor-panel-head">
+          <div>
+            <span class="modal-eyebrow">Sponsors</span>
+            <h3>赞助商列表</h3>
+          </div>
+          <button id="refreshSponsorsButton" class="secondary-button" type="button">刷新</button>
+        </div>
+        <div class="sponsor-mobile-segment" role="tablist" aria-label="赞助商移动端视图切换">
+          <button id="showSponsorListButton" class="segment-button is-active" type="button" data-mobile-panel="sponsors" data-mobile-view="list">列表</button>
+          <button id="showSponsorEditorButton" class="segment-button" type="button" data-mobile-panel="sponsors" data-mobile-view="editor">编辑</button>
+        </div>
+        <form id="sponsorFiltersForm" class="admin-toolbar sponsor-filter-grid">
+          <label class="field-block compact">
+            <span>城市</span>
+            <input id="sponsorCityFilter" placeholder="CN-SZ">
+          </label>
+          <label class="field-block compact">
+            <span>状态</span>
+            <select id="sponsorStatusFilter">
+              <option value="">all</option>
+              <option value="active">active</option>
+              <option value="paused">paused</option>
+              <option value="expired">expired</option>
+              <option value="blocked">blocked</option>
+            </select>
+          </label>
+          <label class="field-block compact">
+            <span>类型</span>
+            <select id="sponsorBusinessTypeFilter">
+              <option value="">all</option>
+              <option value="food">food</option>
+              <option value="clinic">clinic</option>
+              <option value="supplies">supplies</option>
+              <option value="transport">transport</option>
+              <option value="boarding">boarding</option>
+            </select>
+          </label>
+          <label class="field-block compact admin-search">
+            <span>关键词</span>
+            <input id="sponsorKeywordFilter" placeholder="品牌、标题、描述">
+          </label>
+          <button class="primary-button" type="submit">应用筛选</button>
+        </form>
+        <div id="sponsorList" class="admin-card-list sponsor-list"></div>
+      </article>
+
+      <article class="admin-card sponsor-panel sponsor-form-panel" data-mobile-view-panel="sponsors-editor">
+        <div class="admin-card-top sponsor-panel-head">
+          <div>
+            <span class="modal-eyebrow">Sponsor Editor</span>
+            <h3 id="sponsorFormHeading">新建赞助商</h3>
+          </div>
+          <button id="resetSponsorFormButton" class="ghost-button" type="button">清空</button>
+        </div>
+        <form id="sponsorForm" class="stack-column">
+          <input id="sponsorIdField" type="hidden">
+          <div class="form-grid sponsor-form-grid">
+            <label class="field-block">
+              <span>Brand key</span>
+              <input id="sponsorBrandKeyField" placeholder="miaomiao-food">
+            </label>
+            <label class="field-block">
+              <span>名称</span>
+              <input id="sponsorNameField" required placeholder="喵喵猫粮支持站">
+            </label>
+            <label class="field-block">
+              <span>业务类型</span>
+              <select id="sponsorBusinessTypeField" required>
+                <option value="food">food</option>
+                <option value="clinic">clinic</option>
+                <option value="supplies">supplies</option>
+                <option value="transport">transport</option>
+                <option value="boarding">boarding</option>
+              </select>
+            </label>
+            <label class="field-block">
+              <span>状态</span>
+              <select id="sponsorStatusField">
+                <option value="active">active</option>
+                <option value="paused">paused</option>
+                <option value="expired">expired</option>
+                <option value="blocked">blocked</option>
+              </select>
+            </label>
+            <label class="field-block">
+              <span>标题</span>
+              <input id="sponsorTitleField" required placeholder="附近补给合作点">
+            </label>
+            <label class="field-block">
+              <span>赞助标记</span>
+              <input id="sponsorBadgeField" placeholder="sponsored">
+            </label>
+            <label class="field-block">
+              <span>城市</span>
+              <input id="sponsorCityCodeField" required placeholder="CN-SZ">
+            </label>
+            <label class="field-block">
+              <span>片区</span>
+              <input id="sponsorAreaLabelField" required placeholder="南山中心片区">
+            </label>
+            <label class="field-block">
+              <span>纬度</span>
+              <input id="sponsorLatitudeField" type="number" step="any" required placeholder="22.5438">
+            </label>
+            <label class="field-block">
+              <span>经度</span>
+              <input id="sponsorLongitudeField" type="number" step="any" required placeholder="114.0582">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>地址</span>
+              <input id="sponsorAddressField" required placeholder="深圳市南山区某街区">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>描述</span>
+              <textarea id="sponsorDescriptionField" rows="4" required placeholder="支持流浪动物补给协作。"></textarea>
+            </label>
+            <label class="field-block">
+              <span>联系方式</span>
+              <input id="sponsorContactInfoField" placeholder="站内联系后可见">
+            </label>
+            <label class="field-block">
+              <span>营业时间</span>
+              <input id="sponsorServiceHoursField" placeholder="10:00-22:00">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>服务标签</span>
+              <input id="sponsorServiceTagsField" placeholder="cat_food, care_support, discount">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>落地链接</span>
+              <input id="sponsorLandingUrlField" type="url" placeholder="https://example.org/sponsor/901">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>媒体图</span>
+              <input id="sponsorMediaUrlField" type="url" placeholder="https://example.org/media.jpg">
+            </label>
+            <label class="field-block sponsor-form-span-2">
+              <span>Logo 图</span>
+              <input id="sponsorLogoUrlField" type="url" placeholder="https://example.org/logo.png">
+            </label>
+          </div>
+          <label class="sponsor-boolean-row">
+            <input id="sponsorVerifiedField" type="checkbox">
+            <span>已验证合作方</span>
+          </label>
+          <div class="form-actions sponsor-form-actions">
+            <div class="sponsor-action-cluster">
+              <button id="saveSponsorButton" class="primary-button" type="submit">保存赞助商</button>
+              <button id="archiveSponsorButton" class="secondary-button hidden" type="button">归档赞助商</button>
+              <button id="deleteSponsorButton" class="danger-button hidden" type="button">永久删除</button>
+            </div>
+            <p class="admin-subtext">归档会下线该赞助商并结束关联投放；永久删除仅用于已归档记录。</p>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="sponsor-console-grid sponsor-console-grid-campaigns sponsor-mobile-stack" data-mobile-stack="campaigns">
+      <article class="admin-card sponsor-panel" data-mobile-view-panel="campaigns-list">
+        <div class="admin-card-top sponsor-panel-head">
+          <div>
+            <span class="modal-eyebrow">Campaigns</span>
+            <h3>投放计划</h3>
+          </div>
+          <button id="refreshCampaignsButton" class="secondary-button" type="button">刷新</button>
+        </div>
+        <div class="sponsor-mobile-segment" role="tablist" aria-label="投放计划移动端视图切换">
+          <button id="showCampaignListButton" class="segment-button is-active" type="button" data-mobile-panel="campaigns" data-mobile-view="list">列表</button>
+          <button id="showCampaignEditorButton" class="segment-button" type="button" data-mobile-panel="campaigns" data-mobile-view="editor">编辑</button>
+        </div>
+        <form id="campaignFiltersForm" class="admin-toolbar sponsor-filter-grid">
+          <label class="field-block compact">
+            <span>赞助商 ID</span>
+            <input id="campaignSponsorIdFilter" type="number" min="1" placeholder="901">
+          </label>
+          <label class="field-block compact">
+            <span>城市</span>
+            <input id="campaignCityFilter" placeholder="CN-SZ">
+          </label>
+          <label class="field-block compact">
+            <span>状态</span>
+            <select id="campaignStatusFilter">
+              <option value="">all</option>
+              <option value="active">active</option>
+              <option value="paused">paused</option>
+              <option value="expired">expired</option>
+            </select>
+          </label>
+          <button class="primary-button" type="submit">应用筛选</button>
+        </form>
+        <div id="campaignList" class="admin-card-list sponsor-list"></div>
+      </article>
+
+      <article class="admin-card sponsor-panel sponsor-form-panel" data-mobile-view-panel="campaigns-editor">
+        <div class="admin-card-top sponsor-panel-head">
+          <div>
+            <span class="modal-eyebrow">Campaign Editor</span>
+            <h3 id="campaignFormHeading">新建投放计划</h3>
+          </div>
+          <button id="resetCampaignFormButton" class="ghost-button" type="button">清空</button>
+        </div>
+        <form id="campaignForm" class="stack-column">
+          <input id="campaignIdField" type="hidden">
+          <div class="form-grid sponsor-form-grid">
+            <label class="field-block">
+              <span>赞助商 ID</span>
+              <input id="campaignSponsorIdField" type="number" min="1" required placeholder="901">
+            </label>
+            <label class="field-block">
+              <span>状态</span>
+              <select id="campaignStatusField">
+                <option value="active">active</option>
+                <option value="paused">paused</option>
+                <option value="expired">expired</option>
+              </select>
+            </label>
+            <label class="field-block">
+              <span>套餐层级</span>
+              <select id="campaignPackageTierField" required>
+                <option value="guard_30">guard_30</option>
+                <option value="resident_70">resident_70</option>
+                <option value="exclusive_100">exclusive_100</option>
+              </select>
+            </label>
+            <label class="field-block">
+              <span>场景</span>
+              <select id="campaignTargetSceneField" required>
+                <option value="risk">risk</option>
+                <option value="care">care</option>
+                <option value="both">both</option>
+              </select>
+            </label>
+            <label class="field-block">
+              <span>城市</span>
+              <input id="campaignCityCodeField" required placeholder="CN-SZ">
+            </label>
+            <label class="field-block">
+              <span>片区</span>
+              <input id="campaignAreaLabelField" required placeholder="南山中心片区">
+            </label>
+            <label class="field-block">
+              <span>中心纬度</span>
+              <input id="campaignAreaCenterLatField" type="number" step="any" required placeholder="22.5431">
+            </label>
+            <label class="field-block">
+              <span>中心经度</span>
+              <input id="campaignAreaCenterLngField" type="number" step="any" required placeholder="114.0579">
+            </label>
+            <label class="field-block">
+              <span>半径（米）</span>
+              <input id="campaignAreaRadiusField" type="number" min="1" required placeholder="5000">
+            </label>
+            <label class="field-block">
+              <span>份额比例</span>
+              <input id="campaignShareRatioField" type="number" step="0.01" required placeholder="0.7">
+            </label>
+            <label class="field-block">
+              <span>优先权重</span>
+              <input id="campaignPriorityWeightField" type="number" min="1" required placeholder="7">
+            </label>
+            <label class="field-block">
+              <span>城市乘数</span>
+              <input id="campaignCityMultiplierField" type="number" step="0.01" required placeholder="1.2">
+            </label>
+            <label class="field-block">
+              <span>场景乘数</span>
+              <input id="campaignSceneMultiplierField" type="number" step="0.01" required placeholder="1.0">
+            </label>
+            <label class="field-block">
+              <span>月价（分）</span>
+              <input id="campaignMonthlyPriceField" type="number" min="0" required placeholder="79900">
+            </label>
+            <label class="field-block">
+              <span>主位日上限 / 人</span>
+              <input id="campaignDailyPrimaryCapField" type="number" min="0" required placeholder="2">
+            </label>
+            <label class="field-block">
+              <span>副位日上限 / 人</span>
+              <input id="campaignDailySecondaryCapField" type="number" min="0" required placeholder="3">
+            </label>
+            <label class="field-block">
+              <span>副位最多槽位</span>
+              <input id="campaignMaxSecondarySlotsField" type="number" min="0" required placeholder="2">
+            </label>
+            <label class="field-block">
+              <span>开始时间</span>
+              <input id="campaignStartAtField" type="datetime-local" required>
+            </label>
+            <label class="field-block">
+              <span>结束时间</span>
+              <input id="campaignEndAtField" type="datetime-local" required>
+            </label>
+          </div>
+          <div class="form-actions sponsor-form-actions">
+            <div class="sponsor-action-cluster">
+              <button id="saveCampaignButton" class="primary-button" type="submit">保存投放计划</button>
+              <button id="archiveCampaignButton" class="secondary-button hidden" type="button">归档投放</button>
+              <button id="deleteCampaignButton" class="danger-button hidden" type="button">永久删除</button>
+            </div>
+            <p class="admin-subtext">归档会结束该投放计划；永久删除仅用于已归档投放。</p>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="admin-card sponsor-panel sponsor-report-panel">
+      <div class="admin-card-top sponsor-panel-head">
+        <div>
+          <span class="modal-eyebrow">Reports</span>
+          <h3>履约计数</h3>
+          <p class="admin-subtext">来自 `/api/admin/sponsor-reports` 的曝光与交互汇总。</p>
+        </div>
+        <button id="refreshReportsButton" class="secondary-button" type="button">刷新</button>
+      </div>
+      <form id="reportFiltersForm" class="admin-toolbar sponsor-filter-grid sponsor-report-filter-grid">
+        <label class="field-block compact">
+          <span>赞助商 ID</span>
+          <input id="reportSponsorIdFilter" type="number" min="1" placeholder="901">
+        </label>
+        <label class="field-block compact">
+          <span>投放 ID</span>
+          <input id="reportCampaignIdFilter" type="number" min="1" placeholder="1001">
+        </label>
+        <label class="field-block compact">
+          <span>开始日期</span>
+          <input id="reportDateFromFilter" type="date">
+        </label>
+        <label class="field-block compact">
+          <span>结束日期</span>
+          <input id="reportDateToFilter" type="date">
+        </label>
+        <button class="primary-button" type="submit">应用筛选</button>
+      </form>
+      <div id="reportCards" class="admin-stats sponsor-report-cards"></div>
+    </section>
+  </main>
+
+  <script>
+    (function attachAdminScript() {
+      var script = document.createElement("script");
+      script.defer = true;
+      script.src = "/admin.js" + window.location.search;
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

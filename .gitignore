@@ -1,0 +1,9 @@
+data/
+uploads/
+firefly.exe
+firefly.exe~
+*.db
+*.log
+
+.gstack/
+.tmp-playwright/
