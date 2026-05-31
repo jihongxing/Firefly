@@ -51,7 +51,13 @@
       "Bash(curl -s http://localhost:3000/api/health)",
       "Bash(chmod +x test-api.sh)",
       "Bash(bash test-api.sh)",
-      "Bash(pkill -f \"tsx watch src/index.ts\")"
+      "Bash(pkill -f \"tsx watch src/index.ts\")",
+      "Bash(bash test-core-api.sh)",
+      "Bash(bash backend/test-core-api.sh)",
+      "Bash(curl -s \"http://localhost:3000/api/markers/1?lang=en\")",
+      "Bash(curl -s \"http://localhost:3000/api/markers?lat=39.9042&lng=116.4074&radius=5000&lang=en\")",
+      "Bash(find src *)",
+      "Bash(find backend/src -type f -name \"*.ts\" -exec wc -l {} +)"
     ]
   }
 }
