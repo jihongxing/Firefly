@@ -36,7 +36,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
             address: true,
           },
         },
-        reporter: {
+        user: {
           select: {
             id: true,
             username: true,
@@ -45,7 +45,13 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       },
     });
 
-    res.json({ data: reports });
+    // Transform data to match frontend expectations
+    const transformedReports = reports.map(report => ({
+      ...report,
+      reporter: report.user, // Add reporter alias for frontend
+    }));
+
+    res.json({ data: transformedReports });
   } catch (error) {
     next(error);
   }

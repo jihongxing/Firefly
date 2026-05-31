@@ -59,7 +59,8 @@
       "Bash(openssl rand *)",
       "Bash(lsof -ti:5174)",
       "Bash(lsof -ti:3000)",
-      "Bash(killall node *)"
+      "Bash(killall node *)",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }
