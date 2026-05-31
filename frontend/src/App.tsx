@@ -8,6 +8,7 @@ import SubmitMarkerPage from '@/pages/SubmitMarkerPage';
 import LoginPage from '@/pages/LoginPage';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminReportsPage from '@/pages/AdminReportsPage';
+import CommunityVotesPage from '@/pages/CommunityVotesPage';
 import ScrollToTop from '@/components/ScrollToTop';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
@@ -48,6 +49,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin/reports" element={<AdminReportsPage />} />
+          <Route path="/community/votes" element={<CommunityVotesPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

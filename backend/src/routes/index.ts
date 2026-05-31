@@ -7,6 +7,7 @@ import uploadRouter from './upload';
 import usersRouter from './users';
 import gamificationRouter from './gamification';
 import adminRouter from './admin';
+import communityRouter from './community';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use('/upload', uploadRouter);
 router.use('/users', usersRouter);
 router.use('/gamification', gamificationRouter);
 router.use('/admin', adminRouter);
+router.use('/community', communityRouter);
 router.use('/', configRouter);
 
 export default router;

@@ -270,6 +270,14 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* Community Voting Link */}
+        <button
+          onClick={() => navigate('/community/votes')}
+          className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all"
+        >
+          🗳️ 社区投票
+        </button>
+
         {/* Logout Button */}
         <button
           onClick={handleLogout}
