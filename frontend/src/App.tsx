@@ -1,21 +1,46 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import MapPage from '@/pages/MapPage';
+import MarkerDetailPage from '@/pages/MarkerDetailPage';
+import SubmitMarkerPage from '@/pages/SubmitMarkerPage';
+import { apiClient } from '@/services/api';
+import { useAppStore } from '@/store/appStore';
+import './i18n';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 function App() {
+  const { i18n } = useTranslation();
+  const { setConfig, setLocale } = useAppStore();
+
+  useEffect(() => {
+    apiClient.getConfig().then((config) => {
+      setConfig(config);
+      const savedLocale = localStorage.getItem('locale') || config.default_locale;
+      setLocale(savedLocale);
+      i18n.changeLanguage(savedLocale);
+    });
+  }, [setConfig, setLocale, i18n]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Firefly - Community Safety Platform
-          </h1>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600">
-            Welcome to Firefly! The platform is being rebuilt with modern technologies.
-          </p>
-        </div>
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MapPage />} />
+          <Route path="/markers/:id" element={<MarkerDetailPage />} />
+          <Route path="/submit" element={<SubmitMarkerPage />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
