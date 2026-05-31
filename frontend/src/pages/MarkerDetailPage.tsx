@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -7,11 +8,13 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import FeedbackButtons from '@/components/FeedbackButtons';
 import FeedbackSummary from '@/components/FeedbackSummary';
+import ReportModal from '@/components/ReportModal';
 
 export default function MarkerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const { currentLocale } = useAppStore();
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const {
     data: marker,
@@ -126,7 +129,42 @@ export default function MarkerDetailPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <FeedbackButtons markerId={marker.id} onSuccess={() => refetch()} />
         </div>
+
+        {/* Action Buttons */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="font-semibold text-gray-900 text-lg mb-4">更多操作</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition"
+            >
+              🚨 举报
+            </button>
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: marker.title,
+                    text: marker.description,
+                    url: window.location.href,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('链接已复制到剪贴板');
+                }
+              }}
+              className="px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition"
+            >
+              📤 分享
+            </button>
+          </div>
+        </div>
       </main>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <ReportModal markerId={marker.id} onClose={() => setShowReportModal(false)} />
+      )}
     </div>
   );
 }
