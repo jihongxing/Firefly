@@ -21,6 +21,7 @@ export default function MapPage() {
   const [searchRadius, setSearchRadius] = useState(3000);
   const [showList, setShowList] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [isLocating, setIsLocating] = useState(true);
 
   const {
     data: markers = [],
@@ -43,8 +44,31 @@ export default function MapPage() {
 
   useEffect(() => {
     if (config?.map_config) {
-      setMapCenter([config.map_config.default_center.lat, config.map_config.default_center.lng]);
       setSearchRadius(config.map_config.default_radius);
+
+      // 尝试获取用户位置
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setMapCenter([position.coords.latitude, position.coords.longitude]);
+            setIsLocating(false);
+          },
+          (error) => {
+            console.warn('Geolocation error:', error);
+            // 获取位置失败，使用配置的默认位置
+            setMapCenter([config.map_config.default_center.lat, config.map_config.default_center.lng]);
+            setIsLocating(false);
+          },
+          {
+            timeout: 5000,
+            maximumAge: 300000, // 5分钟缓存
+          }
+        );
+      } else {
+        // 浏览器不支持地理定位，使用默认位置
+        setMapCenter([config.map_config.default_center.lat, config.map_config.default_center.lng]);
+        setIsLocating(false);
+      }
     }
   }, [config]);
 

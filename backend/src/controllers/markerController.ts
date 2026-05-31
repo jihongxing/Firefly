@@ -53,10 +53,13 @@ export class MarkerController {
         req.get('user-agent') || 'unknown'
       );
 
+      const userId = (req as any).user?.userId;
+
       const result = await markerService.submitMarker({
         ...data,
         fingerprint,
         ipAddress: req.ip || '127.0.0.1',
+        userId,
       });
 
       res.status(201).json({ data: result });

@@ -8,6 +8,7 @@ import usersRouter from './users';
 import gamificationRouter from './gamification';
 import adminRouter from './admin';
 import communityRouter from './community';
+import userMarkersRouter from './userMarkers';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use('/auth', authRouter);
 router.use('/markers', markersRouter);
 router.use('/upload', uploadRouter);
 router.use('/users', usersRouter);
+router.use('/users', userMarkersRouter);
 router.use('/gamification', gamificationRouter);
 router.use('/admin', adminRouter);
 router.use('/community', communityRouter);

@@ -30,6 +30,7 @@ model Marker {
   disputeScore       Float     @default(0) @map("dispute_score")
   freshnessScore     Float     @default(1) @map("freshness_score")
   status             Int       @default(1)
+  submittedBy        Int?      @map("submitted_by")
   firstSeenAt        DateTime? @map("first_seen_at")
   lastConfirmedAt    DateTime? @map("last_confirmed_at")
   expiresAt          DateTime? @map("expires_at")
@@ -41,7 +42,9 @@ model Marker {
   translations       Translation[]
   sponsorImpressions SponsorImpression[]
   events             Event[]
+  submitter          User?     @relation("SubmittedMarkers", fields: [submittedBy], references: [id], onDelete: SetNull)
 
+  @@index([submittedBy])
   @@map("markers")
 }
 
@@ -120,6 +123,7 @@ model User {
   reviewedReports     Report[] @relation("ReviewedReports")
   reputationHistory   ReputationHistory[]
   governanceVotes     GovernanceVote[]
+  submittedMarkers    Marker[] @relation("SubmittedMarkers")
 
   @@map("users")
 }

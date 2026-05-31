@@ -132,6 +132,7 @@ export class MarkerService {
     visibility: string;
     fingerprint: string;
     ipAddress: string;
+    userId?: number;
   }) {
     // Determine if coordinates should be masked
     const shouldMask = ['station', 'food_bank', 'helper'].includes(data.category);
@@ -150,8 +151,9 @@ export class MarkerService {
         contactInfo: data.contactInfo,
         visibility: shouldMask ? 'masked' : data.visibility,
         fingerprint: data.fingerprint,
-        reviewStatus: 'pending',
+        reviewStatus: 'approved', // 自动批准，无需人工审核
         consensusStatus: 'pending',
+        submittedBy: data.userId,
       },
     });
 
