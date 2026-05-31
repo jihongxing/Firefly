@@ -22,7 +22,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
     const canVote = points >= 11; // Firefly level and above
 
     // Get reports in voting status with aggregated reasons
-    const reports = await prisma.$queryRaw`
+    const reportsRaw = await prisma.$queryRaw`
       SELECT
         r.id,
         r.marker_id,
@@ -49,7 +49,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
           WHERE rr.report_id = r.id
         ) as reasons,
         (
-          SELECT COUNT(DISTINCT user_id)
+          SELECT COUNT(DISTINCT user_id)::int
           FROM report_reasons
           WHERE report_id = r.id
         ) as reporter_count
@@ -59,7 +59,17 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       WHERE r.vote_status = 'voting'
         AND r.vote_deadline > NOW()
       ORDER BY r.created_at DESC
-    `;
+    ` as any[];
+
+    // Convert BigInt to Number for JSON serialization
+    const reports = reportsRaw.map(report => ({
+      ...report,
+      id: Number(report.id),
+      marker_id: Number(report.marker_id),
+      support_weight: Number(report.support_weight || 0),
+      oppose_weight: Number(report.oppose_weight || 0),
+      need_info_count: Number(report.need_info_count || 0),
+    }));
 
     res.json({
       data: reports,
