@@ -175,8 +175,8 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: { message: 'Marker not found' } });
     }
 
-    // Create report
-    const report = await prisma.markerReport.create({
+    // Create report using correct model name
+    const report = await prisma.report.create({
       data: {
         markerId,
         reportedBy: userId,
@@ -194,6 +194,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error('Report creation error:', error);
     next(error);
   }
 });

@@ -24,7 +24,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       });
     }
 
-    const reports = await prisma.markerReport.findMany({
+    const reports = await prisma.report.findMany({
       where: { status: 'pending' },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -74,7 +74,7 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
     }
 
     // Get report
-    const report = await prisma.markerReport.findUnique({
+    const report = await prisma.report.findUnique({
       where: { id: reportId },
       include: { marker: true },
     });
@@ -86,7 +86,7 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
     }
 
     // Update report status
-    const updatedReport = await prisma.markerReport.update({
+    const updatedReport = await prisma.report.update({
       where: { id: reportId },
       data: {
         status: action === 'approve' ? 'resolved' : 'rejected',
