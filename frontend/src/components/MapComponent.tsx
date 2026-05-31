@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
 import type { Marker } from '@/types/api';
 
 // Fix Leaflet default icon issue
@@ -22,7 +25,7 @@ interface MapComponentProps {
 export default function MapComponent({ center, zoom, markers, onMarkerClick, onMapClick }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+  const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -43,31 +46,70 @@ export default function MapComponent({ center, zoom, markers, onMarkerClick, onM
     }
 
     mapRef.current = map;
-    markersLayerRef.current = L.layerGroup().addTo(map);
+
+    // Initialize marker cluster group with custom styling
+    markerClusterGroupRef.current = L.markerClusterGroup({
+      maxClusterRadius: 60,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        let size = 'small';
+        let colorClass = 'bg-blue-500';
+
+        if (count > 100) {
+          size = 'large';
+          colorClass = 'bg-red-500';
+        } else if (count > 10) {
+          size = 'medium';
+          colorClass = 'bg-orange-500';
+        }
+
+        const sizeMap = {
+          small: 'w-10 h-10 text-sm',
+          medium: 'w-12 h-12 text-base',
+          large: 'w-14 h-14 text-lg',
+        };
+
+        return L.divIcon({
+          html: `
+            <div class="${sizeMap[size as keyof typeof sizeMap]} ${colorClass} rounded-full flex items-center justify-center text-white font-bold shadow-lg border-2 border-white">
+              ${count}
+            </div>
+          `,
+          className: 'custom-cluster-icon',
+          iconSize: L.point(40, 40),
+        });
+      },
+    });
+
+    map.addLayer(markerClusterGroupRef.current);
 
     return () => {
       map.remove();
       mapRef.current = null;
+      markerClusterGroupRef.current = null;
     };
   }, [center, zoom, onMapClick]);
 
-  // Update markers
+  // Update markers with clustering
   useEffect(() => {
-    if (!markersLayerRef.current) return;
+    if (!markerClusterGroupRef.current) return;
 
-    markersLayerRef.current.clearLayers();
+    markerClusterGroupRef.current.clearLayers();
 
     markers.forEach((marker) => {
+      const isRisk = ['abuse', 'poison', 'trap', 'theft', 'suspicious_vehicle'].includes(marker.category);
+
       const icon = L.divIcon({
         className: 'custom-marker',
         html: `
           <div class="relative">
             <div class="w-8 h-8 rounded-full ${
-              marker.category === 'abuse' || marker.category === 'poison' || marker.category === 'trap'
-                ? 'bg-red-500'
-                : 'bg-green-500'
-            } border-2 border-white shadow-lg flex items-center justify-center text-white font-bold">
-              ${marker.category === 'abuse' ? '⚠️' : marker.category === 'station' ? '🏠' : '📍'}
+              isRisk ? 'bg-red-500' : 'bg-green-500'
+            } border-2 border-white shadow-lg flex items-center justify-center text-white text-lg">
+              ${isRisk ? '⚠️' : '💚'}
             </div>
           </div>
         `,
@@ -97,7 +139,7 @@ export default function MapComponent({ center, zoom, markers, onMarkerClick, onM
           }
         });
 
-      markersLayerRef.current?.addLayer(leafletMarker);
+      markerClusterGroupRef.current?.addLayer(leafletMarker);
     });
   }, [markers, onMarkerClick]);
 
