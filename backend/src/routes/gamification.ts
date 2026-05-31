@@ -175,16 +175,16 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: { message: 'Marker not found' } });
     }
 
-    // Create report using correct model name
+    // Create report - use only fields that exist in schema
     const report = await prisma.report.create({
       data: {
         markerId,
-        userId, // Correct field name
+        userId,
         reportType: 'marker',
         reason,
-        description,
         status: 'pending',
         ipAddress: req.ip || '0.0.0.0',
+        // Note: description field doesn't exist in Report model
       },
     });
 
