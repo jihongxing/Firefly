@@ -34,6 +34,24 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
+  const { data: pointsData, isLoading: loadingPoints } = useQuery({
+    queryKey: ['userPoints', user?.id],
+    queryFn: async () => {
+      const response = await apiClient.get('/gamification/me/points');
+      return response.data.data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: badgesData, isLoading: loadingBadges } = useQuery({
+    queryKey: ['userBadges', user?.id],
+    queryFn: async () => {
+      const response = await apiClient.get('/gamification/me/badges');
+      return response.data.data;
+    },
+    enabled: !!user,
+  });
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -63,19 +81,54 @@ export default function ProfilePage() {
         {/* User Info Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-              {user?.username.charAt(0).toUpperCase()}
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                {user?.username.charAt(0).toUpperCase()}
+              </div>
+              {pointsData && (
+                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
+                  {pointsData.level === 'angel' ? '👑' :
+                   pointsData.level === 'star' ? '⭐' :
+                   pointsData.level === 'firefly' ? '🔥' : '🌱'}
+                </div>
+              )}
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900">{user?.username}</h2>
-              <p className="text-sm text-gray-500">{user?.email || '未设置邮箱'}</p>
+              {pointsData && (
+                <p className="text-sm text-purple-600 font-medium">{pointsData.levelName}</p>
+              )}
+              <p className="text-xs text-gray-500">{user?.email || '未设置邮箱'}</p>
             </div>
           </div>
 
+          {/* Points Progress */}
+          {pointsData && pointsData.nextLevel && (
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">升级进度</span>
+                <span className="font-medium text-purple-600">
+                  {pointsData.points} / {pointsData.nextLevelPoints} 分
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all"
+                  style={{
+                    width: `${(pointsData.points / pointsData.nextLevelPoints) * 100}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                还需 {pointsData.pointsToNextLevel} 分升级到 {pointsData.nextLevel === 'angel' ? '👑 守护天使' : pointsData.nextLevel === 'star' ? '⭐ 星光守护者' : '🔥 萤火守护者'}
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-              <div className="text-3xl font-bold text-blue-600">{user?.reputationScore || 0}</div>
-              <div className="text-sm text-blue-700 mt-1">声誉分数</div>
+              <div className="text-3xl font-bold text-blue-600">{pointsData?.points || 0}</div>
+              <div className="text-sm text-blue-700 mt-1">守护积分</div>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
               <div className="text-3xl font-bold text-green-600">{myMarkers.length}</div>
@@ -83,6 +136,52 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Guardian Story */}
+        {pointsData?.stats && (
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-sm border border-purple-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">💫 你的守护故事</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">📊 守护天数</span>
+                <span className="font-bold text-purple-600">{pointsData.stats.daysActive} 天</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">🐾 提交标记</span>
+                <span className="font-bold text-purple-600">{pointsData.stats.markersSubmitted} 个</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">💬 反馈次数</span>
+                <span className="font-bold text-purple-600">{pointsData.stats.feedbackGiven} 次</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">💚 获得感谢</span>
+                <span className="font-bold text-purple-600">{pointsData.stats.thanksReceived} 次</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Badge Wall */}
+        {badgesData && badgesData.badges.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              🏆 已获得徽章 ({badgesData.total})
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {badgesData.badges.map((badge: any) => (
+                <div
+                  key={badge.id}
+                  className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 text-center"
+                >
+                  <div className="text-3xl mb-1">{badge.icon}</div>
+                  <div className="text-xs font-medium text-gray-900">{badge.name}</div>
+                  <div className="text-xs text-gray-600 mt-1">{badge.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* My Markers */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
