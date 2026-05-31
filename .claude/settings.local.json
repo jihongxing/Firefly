@@ -56,7 +56,10 @@
       "Edit(*)",
       "Glob(*)",
       "Grep(*)",
-      "Bash(openssl rand *)"
+      "Bash(openssl rand *)",
+      "Bash(lsof -ti:5174)",
+      "Bash(lsof -ti:3000)",
+      "Bash(killall node *)"
     ]
   }
 }
