@@ -19,8 +19,8 @@ export default function ProfilePage() {
   const { data: myMarkers = [], isLoading: loadingMarkers } = useQuery({
     queryKey: ['myMarkers', user?.id],
     queryFn: async () => {
-      // TODO: Implement API endpoint for user's markers
-      return [];
+      const response = await apiClient.get('/users/me/markers');
+      return response.data.data;
     },
     enabled: !!user,
   });
@@ -28,8 +28,8 @@ export default function ProfilePage() {
   const { data: myFeedback = [], isLoading: loadingFeedback } = useQuery({
     queryKey: ['myFeedback', user?.id],
     queryFn: async () => {
-      // TODO: Implement API endpoint for user's feedback
-      return [];
+      const response = await apiClient.get('/users/me/feedback');
+      return response.data.data;
     },
     enabled: !!user,
   });
@@ -109,8 +109,20 @@ export default function ProfilePage() {
                   onClick={() => navigate(`/markers/${marker.id}`)}
                   className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
                 >
-                  <h4 className="font-semibold text-gray-900">{marker.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{marker.address}</p>
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">{marker.title}</h4>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      marker.consensusStatus === 'verified' ? 'bg-blue-100 text-blue-800' :
+                      marker.consensusStatus === 'disputed' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {marker.consensusStatus}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">{marker.address}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {new Date(marker.createdAt).toLocaleDateString('zh-CN')}
+                  </p>
                 </div>
               ))}
             </div>
@@ -131,15 +143,27 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {myFeedback.map((feedback: any) => (
-                <div key={feedback.id} className="p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">{feedback.feedbackType}</span>
+                <div
+                  key={feedback.id}
+                  onClick={() => navigate(`/markers/${feedback.markerId}`)}
+                  className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                      ['confirm', 'support', 'helpful'].includes(feedback.feedbackType) ? 'bg-green-100 text-green-800' :
+                      ['dispute', 'not_helpful', 'outdated'].includes(feedback.feedbackType) ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {feedback.feedbackType}
+                    </span>
                     <span className="text-xs text-gray-500">
-                      {new Date(feedback.createdAt).toLocaleDateString()}
+                      {new Date(feedback.createdAt).toLocaleDateString('zh-CN')}
                     </span>
                   </div>
+                  <p className="text-sm text-gray-700 font-medium">{feedback.marker.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{feedback.marker.address}</p>
                   {feedback.comment && (
-                    <p className="text-sm text-gray-600 mt-2">{feedback.comment}</p>
+                    <p className="text-sm text-gray-600 mt-2 italic">"{feedback.comment}"</p>
                   )}
                 </div>
               ))}

@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
 import MapComponent from '@/components/MapComponent';
+import ImageUpload from '@/components/ImageUpload';
 import type { SubmitMarkerInput } from '@/types/api';
 
 export default function SubmitMarkerPage() {
@@ -20,6 +21,7 @@ export default function SubmitMarkerPage() {
     description: '',
     sourceLocale: currentLocale,
   });
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [showMap, setShowMap] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
@@ -236,6 +238,22 @@ export default function SubmitMarkerPage() {
               maxLength={500}
               placeholder="微信、电话等（可选）"
             />
+          </div>
+
+          {/* Image Upload */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              📸 上传图片（可选）
+            </label>
+            <ImageUpload
+              onUploadSuccess={(urls) => setImageUrls(urls)}
+              maxFiles={5}
+            />
+            {imageUrls.length > 0 && (
+              <div className="mt-3 text-sm text-green-600">
+                ✓ 已上传 {imageUrls.length} 张图片
+              </div>
+            )}
           </div>
         </form>
       </main>
