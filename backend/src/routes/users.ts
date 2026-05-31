@@ -19,8 +19,8 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
         id: true,
         category: true,
         title: true,
-        latitude: true,
-        longitude: true,
+        publicLatitude: true,
+        publicLongitude: true,
         address: true,
         description: true,
         consensusStatus: true,
@@ -31,6 +31,7 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
 
     res.json({ data: markers });
   } catch (error) {
+    console.error('Error fetching user markers:', error);
     next(error);
   }
 });
