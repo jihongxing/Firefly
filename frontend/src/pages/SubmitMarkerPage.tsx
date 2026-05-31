@@ -30,8 +30,7 @@ export default function SubmitMarkerPage() {
   const submitMutation = useMutation({
     mutationFn: (data: SubmitMarkerInput) => apiClient.submitMarker(data),
     onSuccess: (result) => {
-      alert(`${t('common.success')}！ID: ${result.id}`);
-      navigate('/');
+      navigate('/', { state: { message: `提交成功！ID: ${result.id}` } });
     },
     onError: (error: Error) => {
       alert(`${t('common.error')}: ${error.message}`);
@@ -53,7 +52,6 @@ export default function SubmitMarkerPage() {
           longitude: position.coords.longitude,
         });
         setIsGettingLocation(false);
-        alert('位置获取成功！');
       },
       (error) => {
         setIsGettingLocation(false);
@@ -65,7 +63,6 @@ export default function SubmitMarkerPage() {
   const handleMapClick = (lat: number, lng: number) => {
     setFormData({ ...formData, latitude: lat, longitude: lng });
     setShowMap(false);
-    alert('位置已选择！');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -77,175 +74,191 @@ export default function SubmitMarkerPage() {
     ? [...config.marker_categories.risk, ...config.marker_categories.help]
     : [];
 
+  const riskCategories = config?.marker_categories.risk || [];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile-first Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="px-4 py-3">
-          <Link to="/" className="text-blue-600 hover:underline text-sm inline-flex items-center mb-2">
-            ← {t('nav.backToMap')}
-          </Link>
-          <h1 className="text-xl font-bold text-gray-900">{t('marker.submit')}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Modern Header with Glassmorphism */}
+      <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/80 border-b border-gray-200/50">
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
+            >
+              <span className="text-xl">←</span>
+            </Link>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">{t('marker.submit')}</h1>
+              <p className="text-xs text-gray-500">填写标记信息</p>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="px-4 py-4 pb-20">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.category')}
+      <main className="px-4 py-6 pb-32">
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
+          {/* Category Selection - Card Style */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              📌 {t('marker.category')}
             </label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-              required
-            >
+            <div className="grid grid-cols-2 gap-2">
               {allCategories.map((cat) => (
-                <option key={cat} value={cat}>
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, category: cat })}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    formData.category === cat
+                      ? riskCategories.includes(cat)
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30'
+                        : 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
                   {t(`marker.categories.${cat}`)}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.title')}
+          {/* Title Input */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              ✏️ {t('marker.title')}
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
               required
               maxLength={200}
-              placeholder="简短描述事件"
+              placeholder="简短描述事件..."
             />
           </div>
 
-          {/* Location Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.location')}
+          {/* Location Picker - Modern Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              📍 {t('marker.location')}
             </label>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleGetLocation}
-                  disabled={isGettingLocation}
-                  className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium disabled:bg-gray-400"
-                >
-                  {isGettingLocation ? t('common.loading') : '📍 ' + t('marker.getLocation')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowMap(!showMap)}
-                  className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                >
-                  🗺️ {showMap ? t('common.close') : t('marker.clickMapToSelect')}
-                </button>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                disabled={isGettingLocation}
+                className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGettingLocation ? '定位中...' : '🎯 自动定位'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMap(!showMap)}
+                className="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+              >
+                {showMap ? '✓ 完成' : '🗺️ 地图选点'}
+              </button>
+            </div>
+
+            {showMap && (
+              <div className="mb-4 rounded-xl overflow-hidden border-2 border-gray-100">
+                <div className="h-64">
+                  <MapComponent
+                    center={[formData.latitude, formData.longitude]}
+                    zoom={15}
+                    markers={[]}
+                    onMapClick={handleMapClick}
+                  />
+                </div>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 text-xs text-gray-700 text-center font-medium">
+                  点击地图选择位置
+                </div>
               </div>
+            )}
 
-              {/* Map Picker */}
-              {showMap && (
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <div className="h-64">
-                    <MapComponent
-                      center={[formData.latitude, formData.longitude]}
-                      zoom={15}
-                      markers={[]}
-                      onMapClick={handleMapClick}
-                    />
-                  </div>
-                  <div className="bg-blue-50 p-2 text-xs text-blue-700 text-center">
-                    {t('marker.clickMapToSelect')}
-                  </div>
-                </div>
-              )}
-
-              {/* Coordinates Display */}
-              <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">{t('marker.latitude')}:</span>
-                  <span className="font-mono font-medium">{formData.latitude.toFixed(6)}</span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-gray-600">{t('marker.longitude')}:</span>
-                  <span className="font-mono font-medium">{formData.longitude.toFixed(6)}</span>
-                </div>
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-gray-600 font-medium">纬度</span>
+                <span className="font-mono font-semibold text-gray-900">{formData.latitude.toFixed(6)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 font-medium">经度</span>
+                <span className="font-mono font-semibold text-gray-900">{formData.longitude.toFixed(6)}</span>
               </div>
             </div>
           </div>
 
-          {/* Address */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.address')}
+          {/* Address Input */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              🏠 {t('marker.address')}
             </label>
             <input
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
               required
               maxLength={500}
-              placeholder="详细地址或地标"
+              placeholder="详细地址或地标..."
             />
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.description')}
+          {/* Description Textarea */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              📝 {t('marker.description')}
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base resize-none"
               rows={4}
               required
               maxLength={2000}
-              placeholder="详细描述事件情况"
+              placeholder="详细描述事件情况..."
             />
           </div>
 
           {/* Contact Info */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('marker.contactInfoOptional')}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              📞 {t('marker.contactInfoOptional')}
             </label>
             <input
               type="text"
               value={formData.contactInfo || ''}
               onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
               maxLength={500}
-              placeholder="微信、电话等"
+              placeholder="微信、电话等（可选）"
             />
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 space-y-2">
-            <button
-              type="submit"
-              disabled={submitMutation.isPending}
-              className="w-full bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 font-medium text-base"
-            >
-              {submitMutation.isPending ? t('common.loading') : t('common.submit')}
-            </button>
-            <Link
-              to="/"
-              className="block w-full bg-gray-200 text-gray-700 px-6 py-4 rounded-lg hover:bg-gray-300 transition text-center font-medium text-base"
-            >
-              {t('common.cancel')}
-            </Link>
           </div>
         </form>
       </main>
+
+      {/* Modern Fixed Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200/50 p-4" style={{ zIndex: 100 }}>
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <Link
+            to="/"
+            className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition text-center"
+          >
+            取消
+          </Link>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={submitMutation.isPending}
+            className="flex-[2] py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitMutation.isPending ? '提交中...' : '✓ 提交标记'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

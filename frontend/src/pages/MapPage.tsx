@@ -173,43 +173,63 @@ export default function MapPage() {
       {/* Filter Panel Overlay */}
       {showFilterPanel && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-end"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end"
           style={{ zIndex: 2000 }}
           onClick={() => setShowFilterPanel(false)}
         >
           <div
-            className="bg-white rounded-t-3xl w-full max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-t-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 space-y-6">
+            {/* Drag Handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+
+            <div className="px-6 pb-8 space-y-6">
               {/* Header */}
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">筛选设置</h2>
+              <div className="flex items-center justify-between pt-2">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">筛选设置</h2>
+                  <p className="text-sm text-gray-500 mt-1">自定义地图显示</p>
+                </div>
                 <button
                   onClick={() => setShowFilterPanel(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
                 >
-                  ✕
+                  <span className="text-xl text-gray-600">✕</span>
                 </button>
               </div>
 
               {/* Search Radius */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {t('marker.searchRadius')}
-                </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">📏</span>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900">
+                      {t('marker.searchRadius')}
+                    </label>
+                    <p className="text-xs text-gray-500">选择搜索范围</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
                   {[1000, 3000, 5000, 10000].map((radius) => (
                     <button
                       key={radius}
                       onClick={() => setSearchRadius(radius)}
-                      className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
+                      className={`relative px-4 py-4 rounded-2xl text-sm font-semibold transition-all ${
                         searchRadius === radius
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:scale-105'
                       }`}
                     >
-                      {radius / 1000} km
+                      <div className="text-lg font-bold">{radius / 1000}</div>
+                      <div className="text-xs opacity-80">km</div>
+                      {searchRadius === radius && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -217,22 +237,33 @@ export default function MapPage() {
 
               {/* Language */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  语言 / Language
-                </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">🌍</span>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900">
+                      语言 / Language
+                    </label>
+                    <p className="text-xs text-gray-500">选择界面语言</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code)}
-                      className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
+                      className={`relative px-4 py-4 rounded-2xl text-sm font-semibold transition-all ${
                         currentLocale === lang.code
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/30 scale-105'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:scale-105'
                       }`}
                     >
-                      <span className="mr-1">{lang.flag}</span>
-                      {lang.label}
+                      <div className="text-2xl mb-1">{lang.flag}</div>
+                      <div className="text-xs">{lang.label}</div>
+                      {currentLocale === lang.code && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -240,29 +271,47 @@ export default function MapPage() {
 
               {/* View Toggle */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  显示模式
-                </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">👁️</span>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900">
+                      显示模式
+                    </label>
+                    <p className="text-xs text-gray-500">切换地图或列表</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setShowList(false)}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
+                    className={`relative px-6 py-5 rounded-2xl font-semibold transition-all ${
                       !showList
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30 scale-105'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:scale-105'
                     }`}
                   >
-                    🗺️ 地图视图
+                    <div className="text-3xl mb-2">🗺️</div>
+                    <div className="text-sm">地图视图</div>
+                    {!showList && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowList(true)}
-                    className={`px-4 py-3 rounded-lg text-sm font-medium transition ${
+                    className={`relative px-6 py-5 rounded-2xl font-semibold transition-all ${
                       showList
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30 scale-105'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:scale-105'
                     }`}
                   >
-                    📋 列表视图
+                    <div className="text-3xl mb-2">📋</div>
+                    <div className="text-sm">列表视图</div>
+                    {showList && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    )}
                   </button>
                 </div>
               </div>
@@ -270,9 +319,9 @@ export default function MapPage() {
               {/* Apply Button */}
               <button
                 onClick={handleApplyFilters}
-                className="w-full bg-blue-600 text-white py-4 rounded-lg font-medium hover:bg-blue-700 transition"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95"
               >
-                应用设置
+                ✓ 应用设置
               </button>
             </div>
           </div>
