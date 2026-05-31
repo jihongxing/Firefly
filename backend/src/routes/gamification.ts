@@ -51,10 +51,7 @@ router.get('/me/points', authMiddleware, async (req, res, next) => {
     }
 
     // Calculate stats
-    const markerCount = await prisma.marker.count({
-      where: { submittedBy: userId },
-    });
-
+    const markerCount = 0; // TODO: Add submittedBy field to track user's markers
     const feedbackCount = await prisma.feedback.count({
       where: { userId },
     });
@@ -92,10 +89,7 @@ router.get('/me/badges', authMiddleware, async (req, res, next) => {
   try {
     const userId = (req as any).user?.userId;
 
-    const markerCount = await prisma.marker.count({
-      where: { submittedBy: userId },
-    });
-
+    const markerCount = 0; // TODO: Add submittedBy field
     const feedbackCount = await prisma.feedback.count({
       where: { userId },
     });

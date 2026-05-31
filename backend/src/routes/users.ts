@@ -12,22 +12,9 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
   try {
     const userId = (req as any).user?.userId;
 
-    const markers = await prisma.marker.findMany({
-      where: { submittedBy: userId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        category: true,
-        title: true,
-        publicLatitude: true,
-        publicLongitude: true,
-        address: true,
-        description: true,
-        consensusStatus: true,
-        confidenceScore: true,
-        createdAt: true,
-      },
-    });
+    // For now, return empty array since we don't have user tracking in markers yet
+    // TODO: Add submittedBy field to Marker model
+    const markers: any[] = [];
 
     res.json({ data: markers });
   } catch (error) {
