@@ -24,7 +24,14 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
     // Get reports in voting status with aggregated reasons
     const reports = await prisma.$queryRaw`
       SELECT
-        r.*,
+        r.id,
+        r.marker_id,
+        r.vote_status,
+        r.vote_deadline,
+        r.support_weight,
+        r.oppose_weight,
+        r.need_info_count,
+        r.created_at,
         m.title as marker_title,
         m.category as marker_category,
         m.address as marker_address,
@@ -60,6 +67,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       userLevel: points >= 201 ? 'angel' : points >= 51 ? 'star' : points >= 11 ? 'firefly' : 'sprout',
     });
   } catch (error) {
+    console.error('Community reports error:', error);
     next(error);
   }
 });
