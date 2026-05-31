@@ -214,19 +214,14 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
         },
       });
     } else {
-      // Create new report
-      const newReport = await prisma.report.create({
-        data: {
-          markerId,
-          userId,
-          reportType: 'marker',
-          reason,
-          status: 'pending',
-          ipAddress: req.ip || '0.0.0.0',
-          voteStatus: 'voting',
-          voteDeadline: new Date(Date.now() + 48 * 60 * 60 * 1000),
-        },
-      });
+      // Create new report using raw SQL to avoid Prisma issues
+      const newReportResult = await prisma.$queryRaw`
+        INSERT INTO reports (marker_id, user_id, report_type, reason, status, ip_address, vote_status, vote_deadline, created_at)
+        VALUES (${markerId}, ${userId}, 'marker', ${reason}, 'pending', ${req.ip || '0.0.0.0'}, 'voting', NOW() + INTERVAL '48 hours', NOW())
+        RETURNING id, status, created_at
+      ` as any[];
+
+      const newReport = newReportResult[0];
 
       // Add reason to report_reasons table
       await prisma.$executeRaw`
@@ -239,7 +234,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
           id: newReport.id,
           merged: false,
           status: newReport.status,
-          createdAt: newReport.createdAt,
+          createdAt: newReport.created_at,
         },
       });
     }
