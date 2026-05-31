@@ -24,16 +24,22 @@ export default function LoginPage() {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await apiClient.post(endpoint, {
+      const payload = {
         username: formData.username,
-        email: isLogin ? undefined : formData.email,
+        email: isLogin ? undefined : formData.email || undefined,
         password: formData.password,
-      });
+      };
+
+      console.log('Sending request to:', endpoint, payload);
+      const response = await apiClient.post(endpoint, payload);
+      console.log('Response:', response.data);
 
       login(response.data.data.token, response.data.data.user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || '操作失败，请重试');
+      console.error('Auth error:', err);
+      const errorMessage = err.message || err.response?.data?.error?.message || '操作失败，请重试';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
