@@ -158,7 +158,7 @@ router.get('/me/badges', authMiddleware, async (req, res, next) => {
 
 /**
  * POST /api/markers/:id/report
- * Report a marker
+ * Report a marker (with merge logic)
  */
 router.post('/:id/report', authMiddleware, async (req, res, next) => {
   try {
@@ -175,26 +175,74 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       return res.status(404).json({ error: { message: 'Marker not found' } });
     }
 
-    // Create report - use only fields that exist in schema
-    const report = await prisma.report.create({
-      data: {
-        markerId,
-        userId,
-        reportType: 'marker',
-        reason,
-        status: 'pending',
-        ipAddress: req.ip || '0.0.0.0',
-        // Note: description field doesn't exist in Report model
-      },
-    });
+    // Check for existing active report on this marker
+    const existingReport = await prisma.$queryRaw`
+      SELECT * FROM reports
+      WHERE marker_id = ${markerId}
+        AND vote_status = 'voting'
+        AND vote_deadline > NOW()
+      LIMIT 1
+    ` as any[];
 
-    res.json({
-      data: {
-        id: report.id,
-        status: report.status,
-        createdAt: report.createdAt,
-      },
-    });
+    if (existingReport && existingReport.length > 0) {
+      const reportId = existingReport[0].id;
+
+      // Check if this user already reported this marker
+      const alreadyReported = await prisma.$queryRaw`
+        SELECT * FROM report_reasons
+        WHERE report_id = ${reportId} AND user_id = ${userId}
+      ` as any[];
+
+      if (alreadyReported && alreadyReported.length > 0) {
+        return res.status(400).json({
+          error: { message: '你已经举报过这个标记了' }
+        });
+      }
+
+      // Add new reason to existing report
+      await prisma.$executeRaw`
+        INSERT INTO report_reasons (report_id, user_id, reason, description)
+        VALUES (${reportId}, ${userId}, ${reason}, ${description})
+      `;
+
+      res.json({
+        data: {
+          id: reportId,
+          merged: true,
+          status: 'voting',
+          message: '你的举报已添加到现有投票中',
+        },
+      });
+    } else {
+      // Create new report
+      const newReport = await prisma.report.create({
+        data: {
+          markerId,
+          userId,
+          reportType: 'marker',
+          reason,
+          status: 'pending',
+          ipAddress: req.ip || '0.0.0.0',
+          voteStatus: 'voting',
+          voteDeadline: new Date(Date.now() + 48 * 60 * 60 * 1000),
+        },
+      });
+
+      // Add reason to report_reasons table
+      await prisma.$executeRaw`
+        INSERT INTO report_reasons (report_id, user_id, reason, description)
+        VALUES (${newReport.id}, ${userId}, ${reason}, ${description})
+      `;
+
+      res.json({
+        data: {
+          id: newReport.id,
+          merged: false,
+          status: newReport.status,
+          createdAt: newReport.createdAt,
+        },
+      });
+    }
   } catch (error) {
     console.error('Report creation error:', error);
     next(error);

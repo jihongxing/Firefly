@@ -134,6 +134,14 @@ export default function CommunityVotesPage() {
               const hoursRemaining = Math.floor(report.seconds_remaining / 3600);
               const minutesRemaining = Math.floor((report.seconds_remaining % 3600) / 60);
               const hasVoted = report.user_vote !== null;
+              const reasons = report.reasons || [];
+              const reporterCount = report.reporter_count || 1;
+
+              // Count reasons by type
+              const reasonCounts = reasons.reduce((acc: any, r: any) => {
+                acc[r.reason] = (acc[r.reason] || 0) + 1;
+                return acc;
+              }, {});
 
               return (
                 <div
@@ -151,7 +159,7 @@ export default function CommunityVotesPage() {
                           {report.marker_category}
                         </span>
                         <span className="text-xs text-gray-500">
-                          举报者: {report.reporter_username}
+                          {reporterCount} 人举报
                         </span>
                       </div>
                     </div>
@@ -163,15 +171,25 @@ export default function CommunityVotesPage() {
                   </div>
 
                   <div className="bg-orange-50 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-orange-600 font-semibold">举报原因:</span>
-                      <span className="text-orange-800">
-                        {report.reason === 'false_info' ? '信息不实' :
-                         report.reason === 'duplicate' ? '重复标记' :
-                         report.reason === 'wrong_location' ? '位置错误' :
-                         report.reason === 'malicious' ? '恶意标记' : '其他原因'}
-                      </span>
+                    <div className="font-semibold text-orange-600 mb-2">
+                      举报原因（{reporterCount}人）:
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(reasonCounts).map(([reason, count]: [string, any]) => (
+                        <span key={reason} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                          {reason === 'false_info' ? '信息不实' :
+                           reason === 'duplicate' ? '重复标记' :
+                           reason === 'wrong_location' ? '位置错误' :
+                           reason === 'malicious' ? '恶意标记' : '其他原因'}
+                          {count > 1 && ` (${count})`}
+                        </span>
+                      ))}
+                    </div>
+                    {reasons.length > 0 && reasons[0].description && (
+                      <p className="text-sm text-gray-700 mt-3 italic">
+                        "{reasons[0].description}"
+                      </p>
+                    )}
                   </div>
 
                   {/* Voting Progress */}

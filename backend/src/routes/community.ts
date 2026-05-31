@@ -21,19 +21,33 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
     const points = user?.reputationScore || 0;
     const canVote = points >= 11; // Firefly level and above
 
-    // Get reports in voting status
+    // Get reports in voting status with aggregated reasons
     const reports = await prisma.$queryRaw`
       SELECT
         r.*,
         m.title as marker_title,
         m.category as marker_category,
         m.address as marker_address,
-        u.username as reporter_username,
         COALESCE(rv.vote_type, NULL) as user_vote,
-        EXTRACT(EPOCH FROM (r.vote_deadline - NOW())) as seconds_remaining
+        EXTRACT(EPOCH FROM (r.vote_deadline - NOW())) as seconds_remaining,
+        (
+          SELECT json_agg(json_build_object(
+            'reason', rr.reason,
+            'username', u.username,
+            'description', rr.description,
+            'created_at', rr.created_at
+          ))
+          FROM report_reasons rr
+          LEFT JOIN users u ON rr.user_id = u.id
+          WHERE rr.report_id = r.id
+        ) as reasons,
+        (
+          SELECT COUNT(DISTINCT user_id)
+          FROM report_reasons
+          WHERE report_id = r.id
+        ) as reporter_count
       FROM reports r
       LEFT JOIN markers m ON r.marker_id = m.id
-      LEFT JOIN users u ON r.user_id = u.id
       LEFT JOIN report_votes rv ON r.id = rv.report_id AND rv.user_id = ${userId}
       WHERE r.vote_status = 'voting'
         AND r.vote_deadline > NOW()
