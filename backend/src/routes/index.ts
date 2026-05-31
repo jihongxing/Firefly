@@ -5,6 +5,7 @@ import configRouter from './config';
 import authRouter from './auth';
 import uploadRouter from './upload';
 import usersRouter from './users';
+import gamificationRouter from './gamification';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.use('/auth', authRouter);
 router.use('/markers', markersRouter);
 router.use('/upload', uploadRouter);
 router.use('/users', usersRouter);
+router.use('/gamification', gamificationRouter);
 router.use('/', configRouter);
 
 export default router;
