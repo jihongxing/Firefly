@@ -26,7 +26,11 @@
       "Bash(npm create *)",
       "Bash(npm install *)",
       "Bash(npx tailwindcss *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(mv backend/backend/* backend/)",
+      "Bash(mv frontend/frontend/* frontend/)",
+      "Bash(npm list *)"
     ]
   }
 }
