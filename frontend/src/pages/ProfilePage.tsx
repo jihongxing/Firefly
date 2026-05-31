@@ -277,6 +277,16 @@ export default function ProfilePage() {
         >
           退出登录
         </button>
+
+        {/* Admin Link */}
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => navigate('/admin/reports')}
+            className="w-full py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl font-bold hover:shadow-xl hover:shadow-purple-500/30 transition-all"
+          >
+            👑 管理员面板
+          </button>
+        )}
       </main>
     </div>
   );

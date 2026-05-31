@@ -7,6 +7,7 @@ import MarkerDetailPage from '@/pages/MarkerDetailPage';
 import SubmitMarkerPage from '@/pages/SubmitMarkerPage';
 import LoginPage from '@/pages/LoginPage';
 import ProfilePage from '@/pages/ProfilePage';
+import AdminReportsPage from '@/pages/AdminReportsPage';
 import ScrollToTop from '@/components/ScrollToTop';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
@@ -46,6 +47,7 @@ function App() {
           <Route path="/submit" element={<SubmitMarkerPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin/reports" element={<AdminReportsPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
