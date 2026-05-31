@@ -150,17 +150,17 @@ export default function MapPage() {
       </main>
 
       {/* Floating Action Buttons */}
-      <div className="fixed top-20 right-4 z-30 flex flex-col gap-3">
+      <div className="fixed top-20 right-4 z-[1000] flex flex-col gap-3">
         {/* Filter Button */}
         <button
           onClick={() => setShowFilterPanel(true)}
-          className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:shadow-xl transition"
+          className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:shadow-xl transition border-2 border-gray-200"
         >
           ⚙️
         </button>
       </div>
 
-      <div className="fixed bottom-6 right-4 z-30">
+      <div className="fixed bottom-6 right-4 z-[1000]">
         {/* Submit Button */}
         <Link
           to="/submit"
@@ -172,7 +172,7 @@ export default function MapPage() {
 
       {/* Filter Panel Overlay */}
       {showFilterPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-end" onClick={() => setShowFilterPanel(false)}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-end" onClick={() => setShowFilterPanel(false)}>
           <div
             className="bg-white rounded-t-3xl w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
