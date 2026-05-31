@@ -35,9 +35,10 @@ export default function MapPage() {
         lng: mapCenter[1],
         radius: searchRadius,
         lang: currentLocale,
-        limit: 50,
+        limit: 100,
       }),
     enabled: !!config,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
   useEffect(() => {

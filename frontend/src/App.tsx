@@ -7,6 +7,7 @@ import MarkerDetailPage from '@/pages/MarkerDetailPage';
 import SubmitMarkerPage from '@/pages/SubmitMarkerPage';
 import LoginPage from '@/pages/LoginPage';
 import ProfilePage from '@/pages/ProfilePage';
+import ScrollToTop from '@/components/ScrollToTop';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
 import './i18n';
@@ -16,6 +17,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
     },
   },
 });
@@ -36,6 +39,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<MapPage />} />
           <Route path="/markers/:id" element={<MarkerDetailPage />} />
