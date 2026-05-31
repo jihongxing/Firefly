@@ -179,7 +179,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
     const report = await prisma.report.create({
       data: {
         markerId,
-        reportedBy: userId,
+        userId, // Correct field name
         reportType: 'marker',
         reason,
         description,
