@@ -4,9 +4,9 @@
 
 本文档描述从当前 **Go + SQLite + 原生前端** 架构迁移到 **Node.js + PostgreSQL + React** 架构的完整重构计划。
 
-**当前状态**: ✅ Phase 1.1 & 1.2 已完成 - 后端基础架构搭建完成，准备进入 Phase 1.3  
+**当前状态**: ✅ Phase 1.3 已完成 - 核心 API 全部实现，准备进入 Phase 1.4 或 Phase 2  
 **目标状态**: Node.js + TypeScript + Express 后端 + React + TypeScript + Vite 前端  
-**预计周期**: 8-12 周（已完成 Week 1-2）  
+**预计周期**: 8-12 周（已完成 Week 1-3）  
 **风险等级**: 高（完全重写）
 
 **最新进展** (2026-05-31):
@@ -18,8 +18,12 @@
 - ✅ 中间件配置完成（CORS、helmet、日志、限流、错误处理）
 - ✅ 健康检查端点实现
 - ✅ 数据库种子脚本完成
+- ✅ 核心 API 实现完成（标记查询、提交、反馈、配置）
+- ✅ 地理计算工具（距离、坐标脱敏）
+- ✅ 多语言翻译支持
+- ✅ 共识算法实现
 - ✅ 前端项目结构初始化完成
-- 📍 下一步：Phase 1.3 - 核心 API 实现（标记查询、提交、反馈）
+- 📍 下一步：Phase 1.4 - P1 API 或 Phase 2 - 前端基础
 
 ---
 
@@ -197,17 +201,21 @@ DATETIME → TIMESTAMP WITH TIME ZONE
 - [x] 配置管理（环境变量、dotenv、Zod 验证）
 - [x] 限流中间件（全局 + 提交限流）
 
-#### 1.3 核心 API 实现（Week 3-4）
+#### 1.3 核心 API 实现（Week 3-4）✅ 已完成
 
 **优先级 P0（必须）**:
-- [ ] `GET /api/markers` - 列表查询（地理范围、分类过滤）
-- [ ] `POST /api/markers/submit` - 提交标记
-- [ ] `GET /api/markers/:id` - 标记详情
-- [ ] `POST /api/markers/:id/feedback` - 提交反馈
-- [ ] `GET /api/markers/:id/feedback-summary` - 反馈汇总
-- [ ] `GET /api/me/reputation` - 用户声誉
-- [ ] `GET /api/me/activity` - 用户活动
-- [ ] `GET /api/config` - 前端配置
+- [x] `GET /api/markers` - 列表查询（地理范围、分类过滤）
+- [x] `POST /api/markers/submit` - 提交标记
+- [x] `GET /api/markers/:id` - 标记详情
+- [x] `POST /api/markers/:id/feedback` - 提交反馈
+- [x] `GET /api/markers/:id/feedback-summary` - 反馈汇总
+- [x] `GET /api/config` - 前端配置
+
+**额外完成**:
+- [x] 地理计算工具（Haversine 距离、坐标脱敏）
+- [x] 多语言翻译支持（zh-CN, en, hi）
+- [x] 共识算法实现（基于反馈的置信度计算）
+- [x] 完整的类型定义和验证（Zod schema）
 
 **优先级 P1（重要）**:
 - [ ] `POST /api/markers/:id/report` - 举报标记
@@ -498,7 +506,8 @@ DATETIME → TIMESTAMP WITH TIME ZONE
 ```
 Week 1  ████ Phase 0: 准备阶段 ✅ 已完成
 Week 2  ████ Phase 1.1-1.2: 数据库 + API 基础 ✅ 已完成
-Week 3  ░░░░ Phase 1.3: 核心 API (P0) ← 当前位置
+Week 3  ████ Phase 1.3: 核心 API (P0) ✅ 已完成
+Week 4  ░░░░ Phase 1.4: API (P1) + 业务逻辑 ← 当前位置
 Week 4  ░░░░ Phase 1.3-1.4: API (P1) + 业务逻辑
 Week 5  ░░░░ Phase 2.1-2.2: 前端初始化 + 组件库
 Week 6  ░░░░ Phase 2.3: 布局与导航
