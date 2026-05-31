@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
+import { useAuthStore } from '@/store/authStore';
 import MapComponent from '@/components/MapComponent';
 import MarkerList from '@/components/MarkerList';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -14,6 +15,7 @@ export default function MapPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { config, currentLocale, setLocale } = useAppStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   const [mapCenter, setMapCenter] = useState<[number, number]>([39.9042, 116.4074]);
   const [searchRadius, setSearchRadius] = useState(3000);
@@ -151,6 +153,23 @@ export default function MapPage() {
 
       {/* Floating Action Buttons */}
       <div className="fixed top-20 right-4 flex flex-col gap-3" style={{ zIndex: 1000 }}>
+        {/* User Button */}
+        {isAuthenticated ? (
+          <button
+            onClick={() => setShowFilterPanel(true)}
+            className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:shadow-xl transition border-2 border-white font-bold"
+          >
+            {user?.username.charAt(0).toUpperCase()}
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:shadow-xl transition border-2 border-gray-200"
+          >
+            👤
+          </Link>
+        )}
+
         {/* Filter Button */}
         <button
           onClick={() => setShowFilterPanel(true)}

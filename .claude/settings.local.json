@@ -55,7 +55,8 @@
       "Write(*)",
       "Edit(*)",
       "Glob(*)",
-      "Grep(*)"
+      "Grep(*)",
+      "Bash(openssl rand *)"
     ]
   }
 }

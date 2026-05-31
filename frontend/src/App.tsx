@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import MapPage from '@/pages/MapPage';
 import MarkerDetailPage from '@/pages/MarkerDetailPage';
 import SubmitMarkerPage from '@/pages/SubmitMarkerPage';
+import LoginPage from '@/pages/LoginPage';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
 import './i18n';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/" element={<MapPage />} />
           <Route path="/markers/:id" element={<MarkerDetailPage />} />
           <Route path="/submit" element={<SubmitMarkerPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

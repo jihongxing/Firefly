@@ -13,6 +13,21 @@ class ApiClient {
       },
     });
 
+    this.client.interceptors.request.use((config) => {
+      const token = localStorage.getItem('auth-storage');
+      if (token) {
+        try {
+          const authData = JSON.parse(token);
+          if (authData.state?.token) {
+            config.headers.Authorization = `Bearer ${authData.state.token}`;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+      return config;
+    });
+
     this.client.interceptors.response.use(
       (response) => response,
       (error: AxiosError<ApiError>) => {
@@ -22,6 +37,15 @@ class ApiClient {
         throw error;
       }
     );
+  }
+
+  // Expose axios instance for direct use
+  get post() {
+    return this.client.post.bind(this.client);
+  }
+
+  get get() {
+    return this.client.get.bind(this.client);
   }
 
   async getConfig(): Promise<Config> {
