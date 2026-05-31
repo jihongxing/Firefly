@@ -18,6 +18,7 @@ export default function MapPage() {
 
   const [mapCenter, setMapCenter] = useState<[number, number]>([39.9042, 116.4074]);
   const [searchRadius, setSearchRadius] = useState(3000);
+  const [showList, setShowList] = useState(false);
 
   const {
     data: markers = [],
@@ -48,10 +49,6 @@ export default function MapPage() {
     navigate(`/markers/${marker.id}`);
   };
 
-  const handleMapClick = (lat: number, lng: number) => {
-    console.log('Map clicked:', lat, lng);
-  };
-
   if (!config) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -61,93 +58,92 @@ export default function MapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-4 px-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Mobile-first Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-20">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t('app.title')}</h1>
-              <p className="text-sm text-gray-600">{t('app.subtitle')}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 truncate">{t('app.title')}</h1>
+              <p className="text-xs text-gray-600 truncate">{t('app.subtitle')}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <LanguageSwitcher />
-              <Link
-                to="/submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                {t('marker.submit')}
-              </Link>
-            </div>
+            <Link
+              to="/submit"
+              className="ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap"
+            >
+              + {t('marker.submit')}
+            </Link>
           </div>
 
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <label className="text-gray-600">搜索半径:</label>
-              <select
-                value={searchRadius}
-                onChange={(e) => setSearchRadius(Number(e.target.value))}
-                className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={1000}>1 km</option>
-                <option value={3000}>3 km</option>
-                <option value={5000}>5 km</option>
-                <option value={10000}>10 km</option>
-              </select>
-            </div>
+          {/* Controls */}
+          <div className="flex items-center gap-2 text-sm">
+            <select
+              value={searchRadius}
+              onChange={(e) => setSearchRadius(Number(e.target.value))}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value={1000}>1 km</option>
+              <option value={3000}>3 km</option>
+              <option value={5000}>5 km</option>
+              <option value={10000}>10 km</option>
+            </select>
             <button
               onClick={() => refetch()}
-              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition whitespace-nowrap"
             >
-              🔄 刷新
+              🔄
             </button>
+            <button
+              onClick={() => setShowList(!showList)}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition whitespace-nowrap"
+            >
+              {showList ? '🗺️' : '📋'} {markers.length}
+            </button>
+          </div>
+
+          {/* Language Switcher - Mobile Optimized */}
+          <div className="mt-3 flex justify-center">
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Map */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="h-[600px]">
-                {isLoading ? (
-                  <div className="h-full flex items-center justify-center">
-                    <LoadingSpinner size="lg" text="加载地图中..." />
-                  </div>
-                ) : error ? (
-                  <div className="h-full flex items-center justify-center p-6">
-                    <ErrorMessage
-                      message={(error as Error).message || '加载失败'}
-                      onRetry={() => refetch()}
-                    />
-                  </div>
-                ) : (
-                  <MapComponent
-                    center={mapCenter}
-                    zoom={config.map_config.default_zoom}
-                    markers={markers}
-                    onMarkerClick={handleMarkerClick}
-                    onMapClick={handleMapClick}
-                  />
-                )}
-              </div>
+      {/* Main Content */}
+      <main className="flex-1 relative">
+        {/* Map View */}
+        <div className={`absolute inset-0 ${showList ? 'hidden' : 'block'}`}>
+          {isLoading ? (
+            <div className="h-full flex items-center justify-center">
+              <LoadingSpinner size="lg" text={t('common.loading')} />
             </div>
-          </div>
+          ) : error ? (
+            <div className="h-full flex items-center justify-center p-6">
+              <ErrorMessage
+                message={(error as Error).message || t('common.error')}
+                onRetry={() => refetch()}
+              />
+            </div>
+          ) : (
+            <MapComponent
+              center={mapCenter}
+              zoom={config.map_config.default_zoom}
+              markers={markers}
+              onMarkerClick={handleMarkerClick}
+            />
+          )}
+        </div>
 
-          {/* Marker List */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-4">
-              <h2 className="text-xl font-semibold mb-4">
-                附近的标记 ({markers.length})
-              </h2>
-              <div className="max-h-[540px] overflow-y-auto">
-                <MarkerList
-                  markers={markers}
-                  onMarkerClick={handleMarkerClick}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
+        {/* List View */}
+        <div className={`absolute inset-0 bg-gray-50 overflow-y-auto ${showList ? 'block' : 'hidden'}`}>
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">
+              {t('marker.nearby')} ({markers.length})
+            </h2>
+            <MarkerList
+              markers={markers}
+              onMarkerClick={handleMarkerClick}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </main>
