@@ -4,10 +4,22 @@
 
 本文档描述从当前 **Go + SQLite + 原生前端** 架构迁移到 **Node.js + PostgreSQL + React** 架构的完整重构计划。
 
-**当前状态**: Go 后端已实现核心功能（地图标记、赞助商、社区治理、声誉系统）  
+**当前状态**: ✅ Phase 1.1 & 1.2 已完成 - 后端基础架构搭建完成，准备进入 Phase 1.3  
 **目标状态**: Node.js + TypeScript + Express 后端 + React + TypeScript + Vite 前端  
-**预计周期**: 8-12 周  
+**预计周期**: 8-12 周（已完成 Week 1-2）  
 **风险等级**: 高（完全重写）
+
+**最新进展** (2026-05-31):
+- ✅ PostgreSQL 数据库环境搭建完成（Podman 容器）
+- ✅ Prisma Schema 完成并迁移（12 张表）
+- ✅ Prisma Client 生成成功
+- ✅ 后端项目结构初始化完成
+- ✅ Express 服务器基础架构完成
+- ✅ 中间件配置完成（CORS、helmet、日志、限流、错误处理）
+- ✅ 健康检查端点实现
+- ✅ 数据库种子脚本完成
+- ✅ 前端项目结构初始化完成
+- 📍 下一步：Phase 1.3 - 核心 API 实现（标记查询、提交、反馈）
 
 ---
 
@@ -140,24 +152,28 @@ DATETIME → TIMESTAMP WITH TIME ZONE
 
 ## 4. 详细实施阶段
 
-### Phase 0: 准备阶段（Week 1）
+### Phase 0: 准备阶段（Week 1）✅ 已完成
 
 **目标**: 环境搭建、技术验证
 
 **任务清单**:
-- [ ] 创建新代码仓库（或分支 `rewrite-nodejs`）
-- [ ] 初始化 Node.js + TypeScript 项目
-- [ ] 配置 ESLint + Prettier + Husky
-- [ ] 搭建 PostgreSQL 开发环境（Docker）
-- [ ] 设计 Prisma Schema（基于现有 SQLite schema）
-- [ ] 编写数据迁移脚本（SQLite → PostgreSQL）
-- [ ] 技术选型最终确认（UI 库、状态管理）
+- [x] 创建新代码仓库（或分支 `rewrite-nodejs`）
+- [x] 初始化 Node.js + TypeScript 项目（后端 + 前端）
+- [x] 配置 ESLint + Prettier
+- [x] 搭建 PostgreSQL 开发环境（Podman 容器）
+- [x] 设计 Prisma Schema（基于现有 SQLite schema）
+- [x] 运行 Prisma 迁移，数据库表结构创建完成
+- [ ] 编写数据迁移脚本（SQLite → PostgreSQL）- 待 Phase 5
+- [x] 技术选型最终确认（UI 库、状态管理）
 
 **交付物**:
-- `package.json` 配置完成
-- `prisma/schema.prisma` 初版
-- `scripts/migrate-data.ts` 迁移脚本
-- `docker-compose.yml` 本地开发环境
+- ✅ `backend/package.json` 配置完成
+- ✅ `frontend/package.json` 配置完成
+- ✅ `backend/prisma/schema.prisma` 初版完成
+- ✅ PostgreSQL 数据库运行在 Podman 容器
+- ✅ 开发环境启动文档 `QUICKSTART.md`
+
+**完成日期**: 2024-01-XX
 
 ---
 
@@ -165,20 +181,21 @@ DATETIME → TIMESTAMP WITH TIME ZONE
 
 **目标**: 实现 API 层和数据访问层
 
-#### 1.1 数据库层（Week 2）
-- [ ] 完成 Prisma Schema 定义（12 张表）
-- [ ] 生成 Prisma Client
-- [ ] 编写 Seed 脚本（测试数据）
-- [ ] 实现数据库连接池配置
-- [ ] 添加数据库迁移版本控制
+#### 1.1 数据库层（Week 2）✅ 已完成
+- [x] 完成 Prisma Schema 定义（12 张表）
+- [x] 生成 Prisma Client
+- [x] 编写 Seed 脚本（测试数据）
+- [x] 实现数据库连接池配置
+- [x] 添加数据库迁移版本控制
 
-#### 1.2 API 基础设施（Week 2）
-- [ ] Express 服务器初始化
-- [ ] 中间件配置（CORS、body-parser、helmet）
-- [ ] 错误处理中间件
-- [ ] 请求日志（Winston/Pino）
-- [ ] 健康检查端点 `/api/health`
-- [ ] 配置管理（环境变量、dotenv）
+#### 1.2 API 基础设施（Week 2）✅ 已完成
+- [x] Express 服务器初始化
+- [x] 中间件配置（CORS、body-parser、helmet）
+- [x] 错误处理中间件
+- [x] 请求日志（彩色日志输出）
+- [x] 健康检查端点 `/api/health`
+- [x] 配置管理（环境变量、dotenv、Zod 验证）
+- [x] 限流中间件（全局 + 提交限流）
 
 #### 1.3 核心 API 实现（Week 3-4）
 
@@ -479,18 +496,18 @@ DATETIME → TIMESTAMP WITH TIME ZONE
 ### 里程碑时间线
 
 ```
-Week 1  ████ Phase 0: 准备阶段
-Week 2  ████ Phase 1.1-1.2: 数据库 + API 基础
-Week 3  ████ Phase 1.3: 核心 API (P0)
-Week 4  ████ Phase 1.3-1.4: API (P1) + 业务逻辑
-Week 5  ████ Phase 2.1-2.2: 前端初始化 + 组件库
-Week 6  ████ Phase 2.3: 布局与导航
-Week 7  ████ Phase 3.1-3.2: 地图浏览 + 标记提交
-Week 8  ████ Phase 3.3-3.4: 社区反馈 + 用户中心
-Week 9  ████ Phase 3.5: 赞助商展示
-Week 10 ████ Phase 4: 管理后台
-Week 11 ████ Phase 5: 数据迁移 + 测试
-Week 12 ████ Phase 6: 部署上线
+Week 1  ████ Phase 0: 准备阶段 ✅ 已完成
+Week 2  ████ Phase 1.1-1.2: 数据库 + API 基础 ✅ 已完成
+Week 3  ░░░░ Phase 1.3: 核心 API (P0) ← 当前位置
+Week 4  ░░░░ Phase 1.3-1.4: API (P1) + 业务逻辑
+Week 5  ░░░░ Phase 2.1-2.2: 前端初始化 + 组件库
+Week 6  ░░░░ Phase 2.3: 布局与导航
+Week 7  ░░░░ Phase 3.1-3.2: 地图浏览 + 标记提交
+Week 8  ░░░░ Phase 3.3-3.4: 社区反馈 + 用户中心
+Week 9  ░░░░ Phase 3.5: 赞助商展示
+Week 10 ░░░░ Phase 4: 管理后台
+Week 11 ░░░░ Phase 5: 数据迁移 + 测试
+Week 12 ░░░░ Phase 6: 部署上线
 ```
 
 ### 关键检查点
@@ -632,10 +649,28 @@ GET /api/markers?lat=39.9&lng=116.4&radius=5000&types=abuse,poison&limit=50
 | 日期 | 版本 | 变更内容 | 作者 |
 |------|------|----------|------|
 | 2024-01-XX | 1.0 | 初始版本 | - |
+| 2024-01-XX | 1.1 | Phase 0 完成，更新进度和状态 | JHX800 |
 
 ---
 
-**文档状态**: 🟡 草稿  
+**文档状态**: 🟢 进行中 - Phase 0 已完成  
 **最后更新**: 2024-01-XX  
-**负责人**: [待定]  
+**负责人**: JHX800  
 **审核人**: [待定]
+
+---
+
+## 快速启动
+
+开发环境已搭建完成，参考 [QUICKSTART.md](QUICKSTART.md) 启动项目：
+
+```bash
+# 1. 启动数据库
+podman start firefly-postgres
+
+# 2. 启动后端（新终端）
+cd backend && npm run dev
+
+# 3. 启动前端（新终端）
+cd frontend && npm run dev
+```

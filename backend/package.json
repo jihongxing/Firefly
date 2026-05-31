@@ -10,9 +10,13 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx prisma/seed.ts",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": ["firefly", "community", "safety", "api"],
   "author": "",
