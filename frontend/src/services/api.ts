@@ -31,6 +31,11 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error: AxiosError<ApiError>) => {
+        // Don't throw for successful responses (2xx status codes)
+        if (error.response && error.response.status >= 200 && error.response.status < 300) {
+          return error.response;
+        }
+
         if (error.response?.data?.error) {
           throw new Error(error.response.data.error.message);
         }

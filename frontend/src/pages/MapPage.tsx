@@ -155,12 +155,12 @@ export default function MapPage() {
       <div className="fixed top-20 right-4 flex flex-col gap-3" style={{ zIndex: 1000 }}>
         {/* User Button */}
         {isAuthenticated ? (
-          <button
-            onClick={() => setShowFilterPanel(true)}
+          <Link
+            to="/profile"
             className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:shadow-xl transition border-2 border-white font-bold"
           >
             {user?.username.charAt(0).toUpperCase()}
-          </button>
+          </Link>
         ) : (
           <Link
             to="/login"
