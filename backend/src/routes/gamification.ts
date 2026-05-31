@@ -180,6 +180,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       data: {
         markerId,
         reportedBy: userId,
+        reportType: 'marker', // Required field
         reason,
         description,
         status: 'pending',
