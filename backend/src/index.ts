@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
 import { env } from './config/env';
 import { requestLogger } from './middleware/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -20,6 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 app.use(globalRateLimit);
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api', routes);
 
@@ -44,6 +48,7 @@ const startServer = async () => {
       console.log(`🚀 Firefly backend running on port ${PORT}`);
       console.log(`📊 Environment: ${env.NODE_ENV}`);
       console.log(`🌐 CORS origin: ${env.CORS_ORIGIN}`);
+      console.log(`📁 Uploads directory: ${path.join(__dirname, '../uploads')}`);
       console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
