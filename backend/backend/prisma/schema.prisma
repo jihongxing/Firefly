@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Marker {
+  id                 Int       @id @default(autoincrement())
+  category           String
+  title              String
+  publicLatitude     Float     @map("public_latitude")
+  publicLongitude    Float     @map("public_longitude")
+  privateLatitude    Float     @map("private_latitude")
+  privateLongitude   Float     @map("private_longitude")
+  address            String
+  description        String
+  contactInfo        String?   @map("contact_info")
+  mediaUrl           String?   @map("media_url")
+  mediaThumbUrl      String?   @map("media_thumb_url")
+  sourceLocale       String    @default("zh-CN") @map("source_locale")
+  fingerprint        String
+  visibility         String    @default("public")
+  reviewStatus       String    @default("pending") @map("review_status")
+  consensusStatus    String    @default("pending") @map("consensus_status")
+  confidenceScore    Float     @default(0) @map("confidence_score")
+  supportScore       Float     @default(0) @map("support_score")
+  disputeScore       Float     @default(0) @map("dispute_score")
+  freshnessScore     Float     @default(1) @map("freshness_score")
+  status             Int       @default(1)
+  firstSeenAt        DateTime? @map("first_seen_at")
+  lastConfirmedAt    DateTime? @map("last_confirmed_at")
+  expiresAt          DateTime? @map("expires_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  feedback           Feedback[]
+  reports            Report[]
+  translations       Translation[]
+  sponsorImpressions SponsorImpression[]
+  events             Event[]
+
+  @@map("markers")
+}
+
+model Feedback {
+  id              Int      @id @default(autoincrement())
+  markerId        Int      @map("marker_id")
+  userId          Int?     @map("user_id")
+  feedbackType    String   @map("feedback_type")
+  comment         String?
+  confidenceLevel Int      @default(3) @map("confidence_level")
+  ipAddress       String   @map("ip_address")
+  userAgent       String   @map("user_agent")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  marker Marker  @relation(fields: [markerId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([markerId])
+  @@index([userId])
+  @@map("feedback")
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  markerId    Int      @map("marker_id")
+  userId      Int?     @map("user_id")
+  reportType  String   @map("report_type")
+  reason      String
+  status      String   @default("pending")
+  reviewedBy  Int?     @map("reviewed_by")
+  reviewedAt  DateTime? @map("reviewed_at")
+  ipAddress   String   @map("ip_address")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  marker     Marker  @relation(fields: [markerId], references: [id], onDelete: Cascade)
+  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reviewer   User?   @relation("ReviewedReports", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([markerId])
+  @@index([userId])
+  @@map("reports")
+}
+
+model Translation {
+  id          Int      @id @default(autoincrement())
+  markerId    Int      @map("marker_id")
+  locale      String
+  title       String
+  description String
+  address     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  marker Marker @relation(fields: [markerId], references: [id], onDelete: Cascade)
+
+  @@unique([markerId, locale])
+  @@map("translations")
+}
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  username            String   @unique
+  email               String?  @unique
+  passwordHash        String?  @map("password_hash")
+  role                String   @default("user")
+  reputationScore     Float    @default(0) @map("reputation_score")
+  contributionCount   Int      @default(0) @map("contribution_count")
+  accuracyRate        Float    @default(0) @map("accuracy_rate")
+  status              Int      @default(1)
+  lastActiveAt        DateTime? @map("last_active_at")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  feedback            Feedback[]
+  reports             Report[]
+  reviewedReports     Report[] @relation("ReviewedReports")
+  reputationHistory   ReputationHistory[]
+  governanceVotes     GovernanceVote[]
+
+  @@map("users")
+}
+
+model ReputationHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  actionType  String   @map("action_type")
+  points      Float
+  reason      String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("reputation_history")
+}
+
+model Sponsor {
+  id              Int      @id @default(autoincrement())
+  name            String
+  logoUrl         String   @map("logo_url")
+  websiteUrl      String?  @map("website_url")
+  contactEmail    String   @map("contact_email")
+  tier            String   @default("basic")
+  status          Int      @default(1)
+  totalBudget     Float    @default(0) @map("total_budget")
+  spentBudget     Float    @default(0) @map("spent_budget")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  campaigns       SponsorCampaign[]
+  impressions     SponsorImpression[]
+
+  @@map("sponsors")
+}
+
+model SponsorCampaign {
+  id              Int      @id @default(autoincrement())
+  sponsorId       Int      @map("sponsor_id")
+  name            String
+  description     String?
+  targetCategory  String?  @map("target_category")
+  targetRegion    String?  @map("target_region")
+  budget          Float
+  spent           Float    @default(0)
+  impressionGoal  Int      @map("impression_goal")
+  impressionCount Int      @default(0) @map("impression_count")
+  clickCount      Int      @default(0) @map("click_count")
+  startDate       DateTime @map("start_date")
+  endDate         DateTime @map("end_date")
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  sponsor     Sponsor             @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  impressions SponsorImpression[]
+
+  @@index([sponsorId])
+  @@map("sponsor_campaigns")
+}
+
+model SponsorImpression {
+  id          Int      @id @default(autoincrement())
+  campaignId  Int      @map("campaign_id")
+  sponsorId   Int      @map("sponsor_id")
+  markerId    Int?     @map("marker_id")
+  userId      Int?     @map("user_id")
+  impressionType String @map("impression_type")
+  clicked     Boolean  @default(false)
+  ipAddress   String   @map("ip_address")
+  userAgent   String   @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  campaign SponsorCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sponsor  Sponsor         @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  marker   Marker?         @relation(fields: [markerId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([sponsorId])
+  @@index([markerId])
+  @@map("sponsor_impressions")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  markerId    Int?     @map("marker_id")
+  userId      Int?     @map("user_id")
+  eventType   String   @map("event_type")
+  eventData   String   @map("event_data")
+  ipAddress   String   @map("ip_address")
+  userAgent   String   @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  marker Marker? @relation(fields: [markerId], references: [id], onDelete: SetNull)
+
+  @@index([eventType])
+  @@index([markerId])
+  @@map("events")
+}
+
+model GovernanceVote {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  proposalId  String   @map("proposal_id")
+  voteType    String   @map("vote_type")
+  weight      Float    @default(1)
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, proposalId])
+  @@index([proposalId])
+  @@map("governance_votes")
+}
+
+model RateLimit {
+  id          Int      @id @default(autoincrement())
+  identifier  String
+  actionType  String   @map("action_type")
+  count       Int      @default(1)
+  windowStart DateTime @map("window_start")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([identifier, actionType, windowStart])
+  @@index([identifier, actionType])
+  @@map("rate_limits")
+}
