@@ -61,7 +61,8 @@
       "Bash(lsof -ti:3000)",
       "Bash(killall node *)",
       "Bash(python3 -m json.tool)",
-      "Bash(python3 -c \"import sys, json; data=json.load\\(sys.stdin\\); print\\(f'Total markers: {len\\(data.get\\(\\\\\"data\\\\\", []\\)\\)}'\\); [print\\(f'ID={m[\\\\\"id\\\\\"]}, title={m[\\\\\"title\\\\\"]}'\\) for m in data.get\\('data', []\\)]\")"
+      "Bash(python3 -c \"import sys, json; data=json.load\\(sys.stdin\\); print\\(f'Total markers: {len\\(data.get\\(\\\\\"data\\\\\", []\\)\\)}'\\); [print\\(f'ID={m[\\\\\"id\\\\\"]}, title={m[\\\\\"title\\\\\"]}'\\) for m in data.get\\('data', []\\)]\")",
+      "Bash(lsof -ti:5173)"
     ]
   }
 }

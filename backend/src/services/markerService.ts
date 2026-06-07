@@ -1,7 +1,56 @@
 import { Marker, Translation } from '@prisma/client';
 import prisma from '../config/database';
 import { GetMarkersQuery } from '../types/marker';
-import { calculateDistance } from '../utils/geo';
+import { calculateDistance, maskCoordinates } from '../utils/geo';
+
+const MASKED_HELP_CATEGORIES = ['station', 'food_bank', 'helper', 'nearby_adoption'];
+const ADOPTION_CATEGORY = 'nearby_adoption';
+const ADOPTION_FEE_TERMS = [
+  '价格',
+  '费用',
+  '出售',
+  '定金',
+  '订金',
+  '押金',
+  '有偿',
+  '繁育',
+  'price',
+  'fee',
+  'deposit',
+  'sell',
+  'sale',
+  'buy',
+  'purchase',
+];
+const ADOPTION_FREE_CONTEXT_TERMS = [
+  '不收取购买费',
+  '不收取定金',
+  '不收取订金',
+  '不收取押金',
+  '不涉及购买',
+  '不涉及变相收费',
+  '没有购买费',
+  '没有定金',
+  '没有订金',
+  '没有押金',
+  '无定金',
+  '无订金',
+  '无押金',
+  'no purchase fee',
+  'no fee',
+  'no deposit',
+];
+
+function needsAdoptionReview(data: { category: string; title: string; description: string; contactInfo?: string }) {
+  if (data.category !== ADOPTION_CATEGORY) return false;
+
+  let searchableText = `${data.title} ${data.description} ${data.contactInfo || ''}`.toLowerCase();
+  ADOPTION_FREE_CONTEXT_TERMS.forEach((term) => {
+    searchableText = searchableText.replaceAll(term.toLowerCase(), '');
+  });
+
+  return ADOPTION_FEE_TERMS.some((term) => searchableText.includes(term.toLowerCase()));
+}
 
 export class MarkerService {
   /**
@@ -135,14 +184,19 @@ export class MarkerService {
     userId?: number;
   }) {
     // Determine if coordinates should be masked
-    const shouldMask = ['station', 'food_bank', 'helper'].includes(data.category);
+    const shouldMask = MASKED_HELP_CATEGORIES.includes(data.category);
+    const publicCoordinates = shouldMask ? maskCoordinates(data.latitude, data.longitude, 350) : {
+      lat: data.latitude,
+      lng: data.longitude,
+    };
+    const requiresReview = needsAdoptionReview(data);
 
     const marker = await prisma.marker.create({
       data: {
         category: data.category,
         title: data.title,
-        publicLatitude: data.latitude,
-        publicLongitude: data.longitude,
+        publicLatitude: publicCoordinates.lat,
+        publicLongitude: publicCoordinates.lng,
         privateLatitude: data.latitude,
         privateLongitude: data.longitude,
         address: data.address,
@@ -151,7 +205,7 @@ export class MarkerService {
         contactInfo: data.contactInfo,
         visibility: shouldMask ? 'masked' : data.visibility,
         fingerprint: data.fingerprint,
-        reviewStatus: 'approved', // 自动批准，无需人工审核
+        reviewStatus: requiresReview ? 'pending' : 'approved',
         consensusStatus: 'pending',
         submittedBy: data.userId,
       },

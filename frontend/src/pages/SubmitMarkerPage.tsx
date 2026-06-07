@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/appStore';
 import MapComponent from '@/components/MapComponent';
 import ImageUpload from '@/components/ImageUpload';
 import type { SubmitMarkerInput } from '@/types/api';
+import { ADOPTION_CATEGORY, isAdoptionCategory } from '@/utils/markerCategories';
 
 export default function SubmitMarkerPage() {
   const { t } = useTranslation();
@@ -24,10 +25,7 @@ export default function SubmitMarkerPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [showMap, setShowMap] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-
-  useEffect(() => {
-    setFormData((prev) => ({ ...prev, sourceLocale: currentLocale }));
-  }, [currentLocale]);
+  const [freeAdoptionConfirmed, setFreeAdoptionConfirmed] = useState(false);
 
   const submitMutation = useMutation({
     mutationFn: (data: SubmitMarkerInput) => apiClient.submitMarker(data),
@@ -69,7 +67,11 @@ export default function SubmitMarkerPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitMutation.mutate(formData);
+    if (isAdoptionCategory(formData.category) && !freeAdoptionConfirmed) {
+      alert(t('marker.adoption.freeOnlyConfirm'));
+      return;
+    }
+    submitMutation.mutate({ ...formData, sourceLocale: currentLocale });
   };
 
   const allCategories = config
@@ -77,6 +79,7 @@ export default function SubmitMarkerPage() {
     : [];
 
   const riskCategories = config?.marker_categories.risk || [];
+  const isAdoption = isAdoptionCategory(formData.category);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -110,12 +113,19 @@ export default function SubmitMarkerPage() {
                 <button
                   key={cat}
                   type="button"
-                  onClick={() => setFormData({ ...formData, category: cat })}
+                  onClick={() => {
+                    setFormData({ ...formData, category: cat });
+                    if (cat !== ADOPTION_CATEGORY) {
+                      setFreeAdoptionConfirmed(false);
+                    }
+                  }}
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     formData.category === cat
                       ? riskCategories.includes(cat)
-                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30'
-                        : 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30'
+                        ? 'bg-[#D58B2A] text-white shadow-lg shadow-amber-500/20'
+                        : isAdoptionCategory(cat)
+                        ? 'bg-[#FF6B57] text-white shadow-lg shadow-red-500/20'
+                        : 'bg-[#4CB782] text-white shadow-lg shadow-green-500/20'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -123,6 +133,26 @@ export default function SubmitMarkerPage() {
                 </button>
               ))}
             </div>
+            {isAdoption && (
+              <div className="mt-4 rounded-lg border border-[#FF9AA8]/50 bg-[#3A2228] p-4">
+                <div className="text-sm font-semibold text-[#F4F7FA] mb-1">
+                  {t('marker.adoption.freeOnlyTitle')}
+                </div>
+                <p className="text-xs leading-5 text-[#FFD4DA] mb-3">
+                  {t('marker.adoption.freeOnlyNotice')}
+                </p>
+                <label className="flex items-start gap-3 text-sm text-[#F4F7FA]">
+                  <input
+                    type="checkbox"
+                    checked={freeAdoptionConfirmed}
+                    onChange={(e) => setFreeAdoptionConfirmed(e.target.checked)}
+                    className="mt-1 h-4 w-4 accent-[#FF6B57]"
+                    required={isAdoption}
+                  />
+                  <span>{t('marker.adoption.freeOnlyConfirm')}</span>
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Title Input */}
@@ -137,7 +167,7 @@ export default function SubmitMarkerPage() {
               className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
               required
               maxLength={200}
-              placeholder="简短描述事件..."
+              placeholder={isAdoption ? t('marker.adoption.titlePlaceholder') : '简短描述事件...'}
             />
           </div>
 
@@ -221,8 +251,11 @@ export default function SubmitMarkerPage() {
               rows={4}
               required
               maxLength={2000}
-              placeholder="详细描述事件情况..."
+              placeholder={isAdoption ? t('marker.adoption.descriptionPlaceholder') : '详细描述事件情况...'}
             />
+            {isAdoption && (
+              <p className="mt-2 text-xs text-[#8C98A8]">{t('marker.adoption.privacyHint')}</p>
+            )}
           </div>
 
           {/* Contact Info */}
@@ -236,7 +269,7 @@ export default function SubmitMarkerPage() {
               onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
               maxLength={500}
-              placeholder="微信、电话等（可选）"
+              placeholder={isAdoption ? t('marker.adoption.contactPlaceholder') : '微信、电话等（可选）'}
             />
           </div>
 

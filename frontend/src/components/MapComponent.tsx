@@ -2,9 +2,13 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Marker } from '@/types/api';
+import { getMarkerCategoryTone, isRiskCategory } from '@/utils/markerCategories';
 
 // Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const defaultIconPrototype = L.Icon.Default.prototype as L.Icon.Default & {
+  _getIconUrl?: string;
+};
+delete defaultIconPrototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -58,16 +62,15 @@ export default function MapComponent({ center, zoom, markers, onMarkerClick, onM
     markersLayerRef.current.clearLayers();
 
     markers.forEach((marker) => {
-      const isRisk = ['abuse', 'poison', 'trap', 'theft', 'suspicious_vehicle'].includes(marker.category);
+      const isRisk = isRiskCategory(marker.category);
+      const tone = getMarkerCategoryTone(marker.category);
 
       const icon = L.divIcon({
         className: 'custom-marker',
         html: `
           <div class="relative">
-            <div class="w-8 h-8 rounded-full ${
-              isRisk ? 'bg-red-500' : 'bg-green-500'
-            } border-2 border-white shadow-lg flex items-center justify-center text-white text-lg">
-              ${isRisk ? '⚠️' : '💚'}
+            <div class="w-8 h-8 ${isRisk ? 'rounded-sm rotate-45' : 'rounded-full'} border-2 border-white shadow-lg flex items-center justify-center text-white text-lg font-bold" style="background-color: ${tone.markerColor}">
+              <span class="${isRisk ? '-rotate-45' : ''}">${tone.icon}</span>
             </div>
           </div>
         `,

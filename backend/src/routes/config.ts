@@ -10,7 +10,7 @@ router.get('/config', (req: Request, res: Response) => {
       default_locale: 'zh-CN',
       marker_categories: {
         risk: ['abuse', 'poison', 'trap', 'theft', 'missing_pet', 'suspicious_vehicle'],
-        help: ['station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support'],
+        help: ['station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support', 'nearby_adoption'],
       },
       feedback_types: [
         'confirm',

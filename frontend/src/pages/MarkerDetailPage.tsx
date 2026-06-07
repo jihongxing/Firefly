@@ -9,6 +9,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 import FeedbackButtons from '@/components/FeedbackButtons';
 import FeedbackSummary from '@/components/FeedbackSummary';
 import ReportModal from '@/components/ReportModal';
+import { getMarkerCategoryTone, isAdoptionCategory } from '@/utils/markerCategories';
 
 export default function MarkerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +52,9 @@ export default function MarkerDetailPage() {
     );
   }
 
+  const categoryTone = getMarkerCategoryTone(marker.category);
+  const isAdoption = isAdoptionCategory(marker.category);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile-first Header */}
@@ -67,7 +71,7 @@ export default function MarkerDetailPage() {
         {/* Marker Info Card */}
         <div className="bg-white rounded-lg shadow p-4">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${categoryTone.badgeClass}`}>
               {t(`marker.categories.${marker.category}`)}
             </span>
             {marker.is_translated && (
@@ -78,6 +82,17 @@ export default function MarkerDetailPage() {
           </div>
 
           <div className="space-y-3">
+            {isAdoption && (
+              <div className="rounded-lg border border-[#FF9AA8]/50 bg-[#3A2228] p-3">
+                <h3 className="font-semibold text-[#F4F7FA] text-sm mb-1">
+                  {t('marker.adoption.freeOnlyTitle')}
+                </h3>
+                <p className="text-[#FFD4DA] text-xs leading-5">
+                  {t('marker.adoption.freeOnlyNotice')} {t('marker.adoption.privacyHint')}
+                </p>
+              </div>
+            )}
+
             <div>
               <h3 className="font-semibold text-gray-700 text-sm mb-1">📍 {t('marker.address')}</h3>
               <p className="text-gray-600 text-sm">{marker.address}</p>

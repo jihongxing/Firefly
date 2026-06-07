@@ -35,7 +35,7 @@ SET first_seen_at = COALESCE(
 -- Step 3: backfill consensus_status from review_status
 UPDATE markers
 SET consensus_status = CASE
-    WHEN category IN ('station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support') AND review_status = 'pending' THEN 'limited'
+    WHEN category IN ('station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support', 'nearby_adoption') AND review_status = 'pending' THEN 'limited'
     WHEN review_status = 'approved' THEN 'verified'
     WHEN review_status IN ('rejected', 'hidden') THEN 'disputed'
     ELSE 'pending'
@@ -77,7 +77,7 @@ SET expires_at = CASE
             last_confirmed_at,
             (SELECT s.original_created_at FROM _marker_migration_snapshot s WHERE s.id = markers.id)
         ), '+14 days')
-    WHEN category IN ('station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support')
+    WHEN category IN ('station', 'food_bank', 'friendly_clinic', 'helper', 'trap_support', 'nearby_adoption')
         THEN datetime(COALESCE(
             last_confirmed_at,
             (SELECT s.original_created_at FROM _marker_migration_snapshot s WHERE s.id = markers.id)

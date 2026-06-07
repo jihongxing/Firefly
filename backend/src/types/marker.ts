@@ -12,6 +12,7 @@ export const MarkerCategory = z.enum([
   'friendly_clinic',
   'helper',
   'trap_support',
+  'nearby_adoption',
 ]);
 
 export const MarkerVisibility = z.enum(['public', 'masked', 'private']);

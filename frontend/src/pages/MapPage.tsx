@@ -6,22 +6,22 @@ import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
 import MapComponent from '@/components/MapComponent';
-import MarkerList from '@/components/MarkerList';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorMessage from '@/components/ErrorMessage';
 import type { Marker } from '@/types/api';
+import { getMarkerCategoryTone } from '@/utils/markerCategories';
 
 export default function MapPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { config, currentLocale, setLocale } = useAppStore();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   const [mapCenter, setMapCenter] = useState<[number, number]>([39.9042, 116.4074]);
   const [searchRadius, setSearchRadius] = useState(3000);
   const [showList, setShowList] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [isLocating, setIsLocating] = useState(true);
+  const [, setIsLocating] = useState(true);
 
   const {
     data: markers = [],
@@ -150,11 +150,7 @@ export default function MapPage() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-gray-900 flex-1">{marker.title}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      ['abuse', 'poison', 'trap'].includes(marker.category)
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`text-xs px-2 py-1 rounded-full ${getMarkerCategoryTone(marker.category).badgeClass}`}>
                       {t(`marker.categories.${marker.category}`)}
                     </span>
                   </div>

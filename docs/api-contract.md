@@ -39,6 +39,7 @@
 - `friendly_clinic`
 - `helper`
 - `trap_support`
+- `nearby_adoption`
 
 ### 1.4 状态枚举
 

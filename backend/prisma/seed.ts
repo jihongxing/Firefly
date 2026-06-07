@@ -132,7 +132,31 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created ${3} markers`);
+  const marker4 = await prisma.marker.create({
+    data: {
+      category: 'nearby_adoption',
+      title: '亲人橘猫找免费领养',
+      publicLatitude: 39.9188,
+      publicLongitude: 116.418,
+      privateLatitude: 39.9172,
+      privateLongitude: 116.4198,
+      address: '北京市东城区某社区附近',
+      description: '成年橘猫，性格亲人，已做基础驱虫。希望同城免费领养，接受回访，不涉及购买、定金或押金。',
+      contactInfo: '站内联系 test_user_1',
+      sourceLocale: 'zh-CN',
+      fingerprint: 'test-fingerprint-4',
+      visibility: 'masked',
+      reviewStatus: 'approved',
+      consensusStatus: 'pending',
+      confidenceScore: 0.72,
+      supportScore: 0.7,
+      disputeScore: 0,
+      freshnessScore: 1.0,
+      status: 1,
+    },
+  });
+
+  console.log(`✅ Created ${4} markers`);
 
   // Create feedback
   console.log('💬 Creating feedback...');
@@ -184,7 +208,17 @@ async function main() {
     },
   });
 
-  console.log(`✅ Created ${2} translations`);
+  await prisma.translation.create({
+    data: {
+      markerId: marker4.id,
+      locale: 'en',
+      title: 'Friendly orange cat for free adoption',
+      description: 'Adult orange cat, friendly temperament, basic deworming completed. Same-city free adoption only, follow-up accepted, no purchase fee or deposit.',
+      address: 'Near a residential community in Dongcheng District, Beijing',
+    },
+  });
+
+  console.log(`✅ Created ${3} translations`);
 
   // Create sponsor
   console.log('💼 Creating sponsor...');
@@ -246,9 +280,9 @@ async function main() {
   console.log('✨ Database seed completed successfully!');
   console.log('\n📊 Summary:');
   console.log(`   Users: ${3}`);
-  console.log(`   Markers: ${3}`);
+  console.log(`   Markers: ${4}`);
   console.log(`   Feedback: ${2}`);
-  console.log(`   Translations: ${2}`);
+  console.log(`   Translations: ${3}`);
   console.log(`   Sponsors: ${1}`);
   console.log(`   Campaigns: ${1}`);
   console.log(`   Reputation History: ${2}`);

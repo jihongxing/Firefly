@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS markers (
         'food_bank',
         'friendly_clinic',
         'helper',
-        'trap_support'
+        'trap_support',
+        'nearby_adoption'
     )),
     CHECK (visibility IN ('public', 'masked', 'private')),
     CHECK (review_status IN ('pending', 'approved', 'rejected', 'hidden')),
