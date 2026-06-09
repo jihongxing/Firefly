@@ -28,32 +28,31 @@ export default function FeedbackButtons({ markerId, onSuccess }: FeedbackButtons
     status: ['resolved', 'still_active'] as FeedbackType['feedbackType'][],
   };
 
-  const getButtonColor = (type: FeedbackType['feedbackType']) => {
+  const getButtonStyle = (type: FeedbackType['feedbackType']) => {
     if (feedbackGroups.support.includes(type)) {
-      return 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700';
+      return { background: 'rgba(76, 183, 130, 0.16)', borderColor: 'rgba(76, 183, 130, 0.45)', color: 'var(--color-text-strong)' };
     }
     if (feedbackGroups.oppose.includes(type)) {
-      return 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700';
+      return { background: 'rgba(228, 87, 87, 0.14)', borderColor: 'rgba(228, 87, 87, 0.45)', color: 'var(--color-text-strong)' };
     }
-    return 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700';
+    return { background: 'rgba(76, 139, 245, 0.14)', borderColor: 'rgba(76, 139, 245, 0.45)', color: 'var(--color-text-strong)' };
   };
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-gray-900 text-lg">{t('feedback.title')}</h3>
-
       {/* Support Group */}
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-700">{t('feedback.support.title')}</h4>
+        <h4 className="text-[13px] font-bold" style={{ color: 'var(--color-muted)' }}>
+          {t('feedback.support.title')}
+        </h4>
         <div className="grid grid-cols-3 gap-2">
           {feedbackGroups.support.map((type) => (
             <button
               key={type}
               onClick={() => feedbackMutation.mutate(type)}
               disabled={feedbackMutation.isPending}
-              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${getButtonColor(
-                type
-              )} disabled:opacity-50 disabled:cursor-not-allowed shadow-sm`}
+              className="rounded-lg border px-3 py-3 text-[13px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              style={getButtonStyle(type)}
             >
               {t(`feedback.support.${type}`)}
             </button>
@@ -63,16 +62,17 @@ export default function FeedbackButtons({ markerId, onSuccess }: FeedbackButtons
 
       {/* Oppose Group */}
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-700">{t('feedback.oppose.title')}</h4>
+        <h4 className="text-[13px] font-bold" style={{ color: 'var(--color-muted)' }}>
+          {t('feedback.oppose.title')}
+        </h4>
         <div className="grid grid-cols-3 gap-2">
           {feedbackGroups.oppose.map((type) => (
             <button
               key={type}
               onClick={() => feedbackMutation.mutate(type)}
               disabled={feedbackMutation.isPending}
-              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${getButtonColor(
-                type
-              )} disabled:opacity-50 disabled:cursor-not-allowed shadow-sm`}
+              className="rounded-lg border px-3 py-3 text-[13px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              style={getButtonStyle(type)}
             >
               {t(`feedback.oppose.${type}`)}
             </button>
@@ -82,16 +82,17 @@ export default function FeedbackButtons({ markerId, onSuccess }: FeedbackButtons
 
       {/* Status Group */}
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-gray-700">{t('feedback.status.title')}</h4>
+        <h4 className="text-[13px] font-bold" style={{ color: 'var(--color-muted)' }}>
+          {t('feedback.status.title')}
+        </h4>
         <div className="grid grid-cols-2 gap-2">
           {feedbackGroups.status.map((type) => (
             <button
               key={type}
               onClick={() => feedbackMutation.mutate(type)}
               disabled={feedbackMutation.isPending}
-              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${getButtonColor(
-                type
-              )} disabled:opacity-50 disabled:cursor-not-allowed shadow-sm`}
+              className="rounded-lg border px-3 py-3 text-[13px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              style={getButtonStyle(type)}
             >
               {t(`feedback.status.${type}`)}
             </button>
@@ -100,13 +101,17 @@ export default function FeedbackButtons({ markerId, onSuccess }: FeedbackButtons
       </div>
 
       {feedbackMutation.isSuccess && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-sm text-green-700">✓ {t('common.success')}</p>
+        <div className="rounded-lg border p-3" style={{ borderColor: 'rgba(76, 183, 130, 0.45)', background: 'rgba(76, 183, 130, 0.14)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-text-strong)' }}>
+            {t('common.success')}
+          </p>
         </div>
       )}
       {feedbackMutation.isError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-700">✗ {t('common.error')}</p>
+        <div className="rounded-lg border p-3" style={{ borderColor: 'rgba(228, 87, 87, 0.45)', background: 'rgba(228, 87, 87, 0.14)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-text-strong)' }}>
+            {t('common.error')}
+          </p>
         </div>
       )}
     </div>

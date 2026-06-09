@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../middleware/errorHandler';
-import path from 'path';
 
 export class UploadController {
   /**

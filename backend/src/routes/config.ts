@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
-router.get('/config', (req: Request, res: Response) => {
+router.get('/config', (_req: Request, res: Response) => {
   res.json({
     data: {
       version: '1.0.0',

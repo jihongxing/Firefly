@@ -71,14 +71,14 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       need_info_count: Number(report.need_info_count || 0),
     }));
 
-    res.json({
+    return res.json({
       data: reports,
       canVote,
       userLevel: points >= 201 ? 'angel' : points >= 51 ? 'star' : points >= 11 ? 'firefly' : 'sprout',
     });
   } catch (error) {
     console.error('Community reports error:', error);
-    next(error);
+    return next(error);
   }
 });
 
@@ -194,7 +194,7 @@ router.post('/reports/:id/vote', authMiddleware, async (req, res, next) => {
       WHERE id = ${userId}
     `;
 
-    res.json({
+    return res.json({
       data: {
         voteType,
         voteWeight,
@@ -204,7 +204,7 @@ router.post('/reports/:id/vote', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -239,10 +239,11 @@ router.get('/reports/:id/votes', async (req, res, next) => {
       });
     }
 
-    res.json({ data: stats[0] });
+    return res.json({ data: stats[0] });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
 export default router;
+

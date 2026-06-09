@@ -2,17 +2,27 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  HandHeart,
+  ImagePlus,
+  LocateFixed,
+  MapPin,
+  ShieldCheck,
+} from 'lucide-react';
 import { apiClient } from '@/services/api';
 import { useAppStore } from '@/store/appStore';
 import MapComponent from '@/components/MapComponent';
 import ImageUpload from '@/components/ImageUpload';
 import type { SubmitMarkerInput } from '@/types/api';
-import { ADOPTION_CATEGORY, isAdoptionCategory } from '@/utils/markerCategories';
+import { ADOPTION_CATEGORY, isAdoptionCategory, isRiskCategory } from '@/utils/markerCategories';
 
 export default function SubmitMarkerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { config, currentLocale } = useAppStore();
+  const { config, currentLocale, theme } = useAppStore();
   const [formData, setFormData] = useState<SubmitMarkerInput>({
     category: 'abuse',
     title: '',
@@ -30,7 +40,7 @@ export default function SubmitMarkerPage() {
   const submitMutation = useMutation({
     mutationFn: (data: SubmitMarkerInput) => apiClient.submitMarker(data),
     onSuccess: (result) => {
-      navigate('/', { state: { message: `提交成功！ID: ${result.id}` } });
+      navigate('/', { state: { message: t('submitFlow.successMessage', { id: result.id }) } });
     },
     onError: (error: Error) => {
       alert(`${t('common.error')}: ${error.message}`);
@@ -39,23 +49,23 @@ export default function SubmitMarkerPage() {
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      alert('您的浏览器不支持地理定位');
+      alert(t('submitFlow.locationUnsupported'));
       return;
     }
 
     setIsGettingLocation(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setFormData({
-          ...formData,
+        setFormData((current) => ({
+          ...current,
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        });
+        }));
         setIsGettingLocation(false);
       },
       (error) => {
         setIsGettingLocation(false);
-        alert(`获取位置失败: ${error.message}`);
+        alert(t('submitFlow.locationFailed', { message: error.message }));
       }
     );
   };
@@ -65,8 +75,8 @@ export default function SubmitMarkerPage() {
     setShowMap(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event?: React.FormEvent | React.MouseEvent) => {
+    event?.preventDefault();
     if (isAdoptionCategory(formData.category) && !freeAdoptionConfirmed) {
       alert(t('marker.adoption.freeOnlyConfirm'));
       return;
@@ -74,78 +84,74 @@ export default function SubmitMarkerPage() {
     submitMutation.mutate({ ...formData, sourceLocale: currentLocale });
   };
 
-  const allCategories = config
-    ? [...config.marker_categories.risk, ...config.marker_categories.help]
-    : [];
-
-  const riskCategories = config?.marker_categories.risk || [];
+  const allCategories = config ? [...config.marker_categories.risk, ...config.marker_categories.help] : [];
   const isAdoption = isAdoptionCategory(formData.category);
+  const selectedIsRisk = isRiskCategory(formData.category);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Modern Header with Glassmorphism */}
-      <header className="sticky top-0 z-10 backdrop-blur-lg bg-white/80 border-b border-gray-200/50">
-        <div className="px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-            >
-              <span className="text-xl">←</span>
-            </Link>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">{t('marker.submit')}</h1>
-              <p className="text-xs text-gray-500">填写标记信息</p>
-            </div>
+    <div className="ff-page">
+      <header className="ff-page-header">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
+          <Link to="/" className="ff-icon-button shrink-0" aria-label={t('nav.backToMap')}>
+            <ArrowLeft size={18} />
+          </Link>
+          <div className="min-w-0">
+            <h1 className="truncate text-[19px] font-bold leading-6" style={{ color: 'var(--color-text-strong)' }}>
+              {t('marker.submit')}
+            </h1>
+            <p className="text-[13px] leading-5" style={{ color: 'var(--color-muted)' }}>
+              {t('submitFlow.subtitle')}
+            </p>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 pb-32">
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-          {/* Category Selection - Card Style */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📌 {t('marker.category')}
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setFormData({ ...formData, category: cat });
-                    if (cat !== ADOPTION_CATEGORY) {
-                      setFreeAdoptionConfirmed(false);
-                    }
-                  }}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    formData.category === cat
-                      ? riskCategories.includes(cat)
-                        ? 'bg-[#D58B2A] text-white shadow-lg shadow-amber-500/20'
-                        : isAdoptionCategory(cat)
-                        ? 'bg-[#FF6B57] text-white shadow-lg shadow-red-500/20'
-                        : 'bg-[#4CB782] text-white shadow-lg shadow-green-500/20'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {t(`marker.categories.${cat}`)}
-                </button>
-              ))}
+      <main className="mx-auto max-w-2xl px-4 py-5 pb-28">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Panel
+            title={t('marker.category')}
+            hint={t('submitFlow.categoryHint')}
+            icon={selectedIsRisk ? <AlertTriangle size={18} /> : <HandHeart size={18} />}
+          >
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {allCategories.map((category) => {
+                const risk = isRiskCategory(category);
+                const active = formData.category === category;
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, category });
+                      if (category !== ADOPTION_CATEGORY) {
+                        setFreeAdoptionConfirmed(false);
+                      }
+                    }}
+                    className="ff-chip inline-flex items-center justify-center gap-2 px-3 text-[13px] font-bold"
+                    data-active={active}
+                    data-tone={risk ? 'risk' : 'help'}
+                  >
+                    {risk ? <AlertTriangle size={15} /> : <HandHeart size={15} />}
+                    <span className="truncate">{t(`marker.categories.${category}`)}</span>
+                  </button>
+                );
+              })}
             </div>
+
             {isAdoption && (
-              <div className="mt-4 rounded-lg border border-[#FF9AA8]/50 bg-[#3A2228] p-4">
-                <div className="text-sm font-semibold text-[#F4F7FA] mb-1">
+              <div className="mt-4 rounded-lg border p-4" style={{ borderColor: 'rgba(255, 154, 168, 0.5)', background: 'var(--color-help-soft)' }}>
+                <div className="mb-1 flex items-center gap-2 text-[14px] font-bold" style={{ color: 'var(--color-text-strong)' }}>
+                  <ShieldCheck size={17} style={{ color: 'var(--color-primary)' }} />
                   {t('marker.adoption.freeOnlyTitle')}
                 </div>
-                <p className="text-xs leading-5 text-[#FFD4DA] mb-3">
+                <p className="mb-3 text-[13px] leading-5" style={{ color: 'var(--color-muted)' }}>
                   {t('marker.adoption.freeOnlyNotice')}
                 </p>
-                <label className="flex items-start gap-3 text-sm text-[#F4F7FA]">
+                <label className="flex items-start gap-3 text-[14px] leading-5" style={{ color: 'var(--color-text)' }}>
                   <input
                     type="checkbox"
                     checked={freeAdoptionConfirmed}
-                    onChange={(e) => setFreeAdoptionConfirmed(e.target.checked)}
+                    onChange={(event) => setFreeAdoptionConfirmed(event.target.checked)}
                     className="mt-1 h-4 w-4 accent-[#FF6B57]"
                     required={isAdoption}
                   />
@@ -153,163 +159,176 @@ export default function SubmitMarkerPage() {
                 </label>
               </div>
             )}
-          </div>
+          </Panel>
 
-          {/* Title Input */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              ✏️ {t('marker.title')}
-            </label>
+          <Panel title={t('marker.title')} icon={<Check size={18} />}>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
+              onChange={(event) => setFormData({ ...formData, title: event.target.value })}
+              className="ff-field"
               required
               maxLength={200}
-              placeholder={isAdoption ? t('marker.adoption.titlePlaceholder') : '简短描述事件...'}
+              placeholder={isAdoption ? t('marker.adoption.titlePlaceholder') : t('submitFlow.titlePlaceholder')}
             />
-          </div>
+          </Panel>
 
-          {/* Location Picker - Modern Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📍 {t('marker.location')}
-            </label>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
+          <Panel title={t('marker.location')} hint={t('submitFlow.locationHint')} icon={<MapPin size={18} />}>
+            <div className="mb-3 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={handleGetLocation}
                 disabled={isGettingLocation}
-                className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="ff-secondary-action inline-flex items-center justify-center gap-2 px-3 text-[14px] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isGettingLocation ? '定位中...' : '🎯 自动定位'}
+                <LocateFixed size={17} className={isGettingLocation ? 'animate-pulse' : ''} />
+                {isGettingLocation ? t('submitFlow.locating') : t('submitFlow.useCurrentLocation')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowMap(!showMap)}
-                className="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                className="ff-secondary-action inline-flex items-center justify-center gap-2 px-3 text-[14px]"
               >
-                {showMap ? '✓ 完成' : '🗺️ 地图选点'}
+                <MapPin size={17} />
+                {showMap ? t('submitFlow.donePicking') : t('submitFlow.pickOnMap')}
               </button>
             </div>
 
             {showMap && (
-              <div className="mb-4 rounded-xl overflow-hidden border-2 border-gray-100">
+              <div className="mb-3 overflow-hidden rounded-lg border" style={{ borderColor: 'var(--color-border-soft)' }}>
                 <div className="h-64">
                   <MapComponent
                     center={[formData.latitude, formData.longitude]}
                     zoom={15}
                     markers={[]}
+                    theme={theme}
                     onMapClick={handleMapClick}
                   />
                 </div>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 text-xs text-gray-700 text-center font-medium">
-                  点击地图选择位置
+                <div className="p-3 text-center text-[13px] font-semibold" style={{ background: 'var(--color-surface-2)', color: 'var(--color-muted)' }}>
+                  {t('marker.clickMapToSelect')}
                 </div>
               </div>
             )}
 
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-600 font-medium">纬度</span>
-                <span className="font-mono font-semibold text-gray-900">{formData.latitude.toFixed(6)}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 font-medium">经度</span>
-                <span className="font-mono font-semibold text-gray-900">{formData.longitude.toFixed(6)}</span>
-              </div>
+            <div className="grid grid-cols-2 gap-2 rounded-lg border p-3" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-surface-2)' }}>
+              <Coordinate label={t('marker.latitude')} value={formData.latitude.toFixed(6)} />
+              <Coordinate label={t('marker.longitude')} value={formData.longitude.toFixed(6)} />
             </div>
-          </div>
+          </Panel>
 
-          {/* Address Input */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              🏠 {t('marker.address')}
-            </label>
+          <Panel title={t('marker.address')} icon={<MapPin size={18} />}>
             <input
               type="text"
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
+              onChange={(event) => setFormData({ ...formData, address: event.target.value })}
+              className="ff-field"
               required
               maxLength={500}
-              placeholder="详细地址或地标..."
+              placeholder={t('submitFlow.addressPlaceholder')}
             />
-          </div>
+          </Panel>
 
-          {/* Description Textarea */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📝 {t('marker.description')}
-            </label>
+          <Panel title={t('marker.description')} icon={<HandHeart size={18} />}>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base resize-none"
-              rows={4}
+              onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+              className="ff-field min-h-32 resize-none"
+              rows={5}
               required
               maxLength={2000}
-              placeholder={isAdoption ? t('marker.adoption.descriptionPlaceholder') : '详细描述事件情况...'}
+              placeholder={isAdoption ? t('marker.adoption.descriptionPlaceholder') : t('submitFlow.descriptionPlaceholder')}
             />
             {isAdoption && (
-              <p className="mt-2 text-xs text-[#8C98A8]">{t('marker.adoption.privacyHint')}</p>
+              <p className="mt-2 text-[13px] leading-5" style={{ color: 'var(--color-muted)' }}>
+                {t('marker.adoption.privacyHint')}
+              </p>
             )}
-          </div>
+          </Panel>
 
-          {/* Contact Info */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📞 {t('marker.contactInfoOptional')}
-            </label>
+          <Panel title={t('marker.contactInfoOptional')} hint={t('detail.privacyNotice')} icon={<ShieldCheck size={18} />}>
             <input
               type="text"
               value={formData.contactInfo || ''}
-              onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-base"
+              onChange={(event) => setFormData({ ...formData, contactInfo: event.target.value })}
+              className="ff-field"
               maxLength={500}
-              placeholder={isAdoption ? t('marker.adoption.contactPlaceholder') : '微信、电话等（可选）'}
+              placeholder={isAdoption ? t('marker.adoption.contactPlaceholder') : t('submitFlow.contactPlaceholder')}
             />
-          </div>
+          </Panel>
 
-          {/* Image Upload */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📸 上传图片（可选）
-            </label>
-            <ImageUpload
-              onUploadSuccess={(urls) => setImageUrls(urls)}
-              maxFiles={5}
-            />
+          <Panel title={t('submitFlow.uploadMedia')} icon={<ImagePlus size={18} />}>
+            <ImageUpload onUploadSuccess={(urls) => setImageUrls(urls)} maxFiles={5} />
             {imageUrls.length > 0 && (
-              <div className="mt-3 text-sm text-green-600">
-                ✓ 已上传 {imageUrls.length} 张图片
+              <div className="mt-3 text-[13px] font-semibold" style={{ color: 'var(--color-success)' }}>
+                {t('submitFlow.uploadReady', { count: imageUrls.length })}
               </div>
             )}
-          </div>
+          </Panel>
         </form>
       </main>
 
-      {/* Modern Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200/50 p-4" style={{ zIndex: 100 }}>
-        <div className="max-w-2xl mx-auto flex gap-3">
-          <Link
-            to="/"
-            className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition text-center"
-          >
-            取消
+      <div className="fixed inset-x-0 bottom-0 border-t p-4" style={{ zIndex: 'var(--z-sheet)', borderColor: 'var(--color-border-soft)', background: 'var(--color-surface)' }}>
+        <div className="mx-auto flex max-w-2xl gap-3">
+          <Link to="/" className="ff-secondary-action flex flex-1 items-center justify-center px-4 text-[15px]">
+            {t('common.cancel')}
           </Link>
           <button
-            type="submit"
+            type="button"
             onClick={handleSubmit}
             disabled={submitMutation.isPending}
-            className="flex-[2] py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ff-action flex-[2] px-4 text-[15px] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitMutation.isPending ? '提交中...' : '✓ 提交标记'}
+            {submitMutation.isPending ? t('submitFlow.submitting') : t('submitFlow.submitReport')}
           </button>
         </div>
       </div>
     </div>
   );
+
+  function Panel({
+    title,
+    hint,
+    icon,
+    children,
+  }: {
+    title: string;
+    hint?: string;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+  }) {
+    return (
+      <section className="ff-panel p-4">
+        <div className="mb-3 flex items-start gap-2">
+          <span className="mt-0.5" style={{ color: selectedIsRisk ? 'var(--color-warning)' : 'var(--color-primary)' }}>
+            {icon}
+          </span>
+          <div>
+            <h2 className="text-[15px] font-bold leading-5" style={{ color: 'var(--color-text-strong)' }}>
+              {title}
+            </h2>
+            {hint && (
+              <p className="mt-0.5 text-[13px] leading-5" style={{ color: 'var(--color-muted)' }}>
+                {hint}
+              </p>
+            )}
+          </div>
+        </div>
+        {children}
+      </section>
+    );
+  }
+
+  function Coordinate({ label, value }: { label: string; value: string }) {
+    return (
+      <div>
+        <div className="text-[12px] font-semibold" style={{ color: 'var(--color-muted)' }}>
+          {label}
+        </div>
+        <div className="font-mono text-[13px] font-bold" style={{ color: 'var(--color-text-strong)' }}>
+          {value}
+        </div>
+      </div>
+    );
+  }
 }

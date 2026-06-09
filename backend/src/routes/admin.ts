@@ -51,9 +51,9 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
       reporter: report.user, // Add reporter alias for frontend
     }));
 
-    res.json({ data: transformedReports });
+    return res.json({ data: transformedReports });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -65,7 +65,7 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
   try {
     const reportId = parseInt(req.params.id);
     const userId = (req as any).user?.userId;
-    const { action, adminNote } = req.body; // action: 'approve' | 'reject' | 'hide_marker'
+    const { action } = req.body; // action: 'approve' | 'reject' | 'hide_marker'
 
     // Check if user is admin
     const user = await prisma.user.findUnique({
@@ -98,7 +98,6 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
         status: action === 'approve' ? 'resolved' : 'rejected',
         reviewedBy: userId,
         reviewedAt: new Date(),
-        adminNote,
       },
     });
 
@@ -113,7 +112,7 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
       });
     }
 
-    res.json({
+    return res.json({
       data: {
         id: updatedReport.id,
         status: updatedReport.status,
@@ -121,8 +120,9 @@ router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
 export default router;
+

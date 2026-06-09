@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ImagePlus, X } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 interface ImageUploadProps {
@@ -7,6 +9,7 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUploadProps) {
+  const { t } = useTranslation();
   const { token } = useAuthStore();
   const [uploading, setUploading] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -64,8 +67,8 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
           body: formData,
         });
 
-        const data = await response.json();
-        onUploadSuccess(data.data.files.map((f: any) => f.url));
+        const data: { data: { files: Array<{ url: string }> } } = await response.json();
+        onUploadSuccess(data.data.files.map((file) => file.url));
       }
 
       // Clear after success
@@ -76,7 +79,7 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('上传失败，请重试');
+      alert(t('upload.failed'));
     } finally {
       setUploading(false);
     }
@@ -97,9 +100,10 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
         />
         <label
           htmlFor="image-upload"
-          className="block w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all cursor-pointer text-center"
+          className="ff-secondary-action flex cursor-pointer items-center justify-center gap-2 px-4 text-[14px]"
         >
-          📷 选择图片 ({files.length}/{maxFiles})
+          <ImagePlus size={18} />
+          {t('upload.choose', { current: files.length, max: maxFiles })}
         </label>
       </div>
 
@@ -107,13 +111,15 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
       {previews.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {previews.map((preview, index) => (
-            <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200">
-              <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+            <div key={preview} className="relative aspect-square overflow-hidden rounded-lg border" style={{ borderColor: 'var(--color-border-soft)' }}>
+              <img src={preview} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" />
               <button
+                type="button"
                 onClick={() => handleRemove(index)}
-                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition"
+                className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full border bg-black/70 text-white"
+                aria-label={t('upload.remove')}
               >
-                ✕
+                <X size={14} />
               </button>
             </div>
           ))}
@@ -123,11 +129,12 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
       {/* Upload Button */}
       {files.length > 0 && (
         <button
+          type="button"
           onClick={handleUpload}
           disabled={uploading}
-          className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ff-action w-full px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {uploading ? '上传中...' : `✓ 上传 ${files.length} 张图片`}
+          {uploading ? t('upload.uploading') : t('upload.upload', { count: files.length })}
         </button>
       )}
     </div>

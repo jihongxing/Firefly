@@ -8,18 +8,16 @@ const router = Router();
  * GET /api/users/me/markers
  * Get current user's markers
  */
-router.get('/me/markers', authMiddleware, async (req, res, next) => {
+router.get('/me/markers', authMiddleware, async (_req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
-
     // For now, return empty array since we don't have user tracking in markers yet
     // TODO: Add submittedBy field to Marker model
     const markers: any[] = [];
 
-    res.json({ data: markers });
+    return res.json({ data: markers });
   } catch (error) {
     console.error('Error fetching user markers:', error);
-    next(error);
+    return next(error);
   }
 });
 
@@ -45,10 +43,11 @@ router.get('/me/feedback', authMiddleware, async (req, res, next) => {
       },
     });
 
-    res.json({ data: feedback });
+    return res.json({ data: feedback });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
 export default router;
+

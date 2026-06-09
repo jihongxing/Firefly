@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/services/api';
 
 interface FeedbackSummaryProps {
@@ -6,6 +7,7 @@ interface FeedbackSummaryProps {
 }
 
 export default function FeedbackSummary({ markerId }: FeedbackSummaryProps) {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['feedbackSummary', markerId],
     queryFn: () => apiClient.getFeedbackSummary(markerId),
@@ -13,17 +15,19 @@ export default function FeedbackSummary({ markerId }: FeedbackSummaryProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-gray-100 rounded-lg p-4 animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+      <div className="ff-panel animate-pulse p-4">
+        <div className="mb-2 h-4 w-1/2 rounded" style={{ background: 'var(--color-surface-2)' }}></div>
+        <div className="h-3 w-3/4 rounded" style={{ background: 'var(--color-surface-2)' }}></div>
       </div>
     );
   }
 
   if (!data || data.feedback_count === 0) {
     return (
-      <div className="bg-gray-50 rounded-lg p-4 text-center">
-        <p className="text-gray-500 text-sm">暂无反馈</p>
+      <div className="ff-panel p-4 text-center">
+        <p className="text-[14px]" style={{ color: 'var(--color-muted)' }}>
+          {t('feedback.noFeedback')}
+        </p>
       </div>
     );
   }
@@ -32,15 +36,17 @@ export default function FeedbackSummary({ markerId }: FeedbackSummaryProps) {
   const types = Object.entries(breakdown).filter(([key]) => key !== 'total');
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h3 className="font-semibold text-gray-900 mb-3">
-        社区反馈统计 ({data.feedback_count} 条)
+    <div className="ff-panel p-4">
+      <h3 className="mb-3 text-[16px] font-bold" style={{ color: 'var(--color-text-strong)' }}>
+        {t('feedback.summary')} ({data.feedback_count} {t('feedback.count')})
       </h3>
       <div className="space-y-2">
         {types.map(([type, count]) => (
           <div key={type} className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">{type}</span>
-            <span className="font-medium text-gray-900">{count}</span>
+            <span style={{ color: 'var(--color-muted)' }}>{type}</span>
+            <span className="font-bold" style={{ color: 'var(--color-text-strong)' }}>
+              {count}
+            </span>
           </div>
         ))}
       </div>

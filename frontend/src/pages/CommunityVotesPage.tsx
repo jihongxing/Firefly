@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function CommunityVotesPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [voteReason, setVoteReason] = useState('');

@@ -35,7 +35,7 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
       },
     });
 
-    res.json({
+    return res.json({
       data: markers.map(marker => ({
         id: marker.id,
         category: marker.category,
@@ -52,7 +52,7 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
       })),
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -84,7 +84,7 @@ router.get('/me/feedback', authMiddleware, async (req, res, next) => {
       take: 50,
     });
 
-    res.json({
+    return res.json({
       data: feedback.map(f => ({
         id: f.id,
         feedback_type: f.feedbackType,
@@ -100,7 +100,7 @@ router.get('/me/feedback', authMiddleware, async (req, res, next) => {
       })),
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -139,7 +139,7 @@ router.put('/me/markers/:id', authMiddleware, async (req, res, next) => {
       },
     });
 
-    res.json({
+    return res.json({
       data: {
         id: updated.id,
         title: updated.title,
@@ -150,7 +150,7 @@ router.put('/me/markers/:id', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -185,15 +185,16 @@ router.delete('/me/markers/:id', authMiddleware, async (req, res, next) => {
       },
     });
 
-    res.json({
+    return res.json({
       data: {
         id: markerId,
         message: '标记已删除',
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
 export default router;
+

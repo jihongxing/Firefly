@@ -30,8 +30,8 @@ router.get('/me/points', authMiddleware, async (req, res, next) => {
     const points = user.reputationScore;
     let level = 'sprout'; // 新芽守护者
     let levelName = '新芽守护者';
-    let nextLevel = 'firefly';
-    let nextLevelPoints = 11;
+    let nextLevel: string | null = 'firefly';
+    let nextLevelPoints: number | null = 11;
 
     if (points >= 201) {
       level = 'angel';
@@ -62,7 +62,7 @@ router.get('/me/points', authMiddleware, async (req, res, next) => {
       (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    res.json({
+    return res.json({
       data: {
         points,
         level,
@@ -79,7 +79,7 @@ router.get('/me/points', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -144,7 +144,7 @@ router.get('/me/badges', authMiddleware, async (req, res, next) => {
       });
     }
 
-    res.json({
+    return res.json({
       data: {
         badges,
         total: badges.length,
@@ -156,7 +156,7 @@ router.get('/me/badges', authMiddleware, async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
@@ -209,7 +209,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
         VALUES (${reportId}, ${userId}, ${reason}, ${description})
       `;
 
-      res.json({
+      return res.json({
         data: {
           id: reportId,
           merged: true,
@@ -233,7 +233,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
         VALUES (${newReport.id}, ${userId}, ${reason}, ${description})
       `;
 
-      res.json({
+      return res.json({
         data: {
           id: newReport.id,
           merged: false,
@@ -244,8 +244,9 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
     }
   } catch (error) {
     console.error('Report creation error:', error);
-    next(error);
+    return next(error);
   }
 });
 
 export default router;
+

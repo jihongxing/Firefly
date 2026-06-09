@@ -1,12 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function ProfilePage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuthStore();
 
@@ -34,7 +32,7 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const { data: pointsData, isLoading: loadingPoints } = useQuery({
+  const { data: pointsData } = useQuery({
     queryKey: ['userPoints', user?.id],
     queryFn: async () => {
       const response = await apiClient.get('/gamification/me/points');
@@ -43,7 +41,7 @@ export default function ProfilePage() {
     enabled: !!user,
   });
 
-  const { data: badgesData, isLoading: loadingBadges } = useQuery({
+  const { data: badgesData } = useQuery({
     queryKey: ['userBadges', user?.id],
     queryFn: async () => {
       const response = await apiClient.get('/gamification/me/badges');

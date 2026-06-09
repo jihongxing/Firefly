@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 
 export default function LoginPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const [isLogin, setIsLogin] = useState(true);

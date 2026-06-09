@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import prisma from '../config/database';
 import { env } from '../config/env';
@@ -16,6 +16,11 @@ const LoginSchema = z.object({
   username: z.string(),
   password: z.string(),
 });
+
+const signToken = (payload: { userId: number; username: string; role: string }) => {
+  const options: SignOptions = { expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'] };
+  return jwt.sign(payload, env.JWT_SECRET, options);
+};
 
 export class AuthController {
   /**
@@ -49,11 +54,7 @@ export class AuthController {
       });
 
       // Generate JWT
-      const token = jwt.sign(
-        { userId: user.id, username: user.username, role: user.role },
-        env.JWT_SECRET,
-        { expiresIn: env.JWT_EXPIRES_IN }
-      );
+      const token = signToken({ userId: user.id, username: user.username, role: user.role });
 
       res.status(201).json({
         data: {
@@ -96,11 +97,7 @@ export class AuthController {
       }
 
       // Generate JWT
-      const token = jwt.sign(
-        { userId: user.id, username: user.username, role: user.role },
-        env.JWT_SECRET,
-        { expiresIn: env.JWT_EXPIRES_IN }
-      );
+      const token = signToken({ userId: user.id, username: user.username, role: user.role });
 
       res.json({
         data: {

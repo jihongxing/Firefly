@@ -20,14 +20,14 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
     },
   },
 });
 
 function App() {
   const { i18n } = useTranslation();
-  const { setConfig, setLocale } = useAppStore();
+  const { setConfig, setLocale, theme } = useAppStore();
 
   useEffect(() => {
     apiClient.getConfig().then((config) => {
@@ -37,6 +37,11 @@ function App() {
       i18n.changeLanguage(savedLocale);
     });
   }, [setConfig, setLocale, i18n]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.lang = i18n.language || 'zh-CN';
+  }, [theme, i18n.language]);
 
   return (
     <QueryClientProvider client={queryClient}>
