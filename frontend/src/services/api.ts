@@ -21,7 +21,7 @@ class ApiClient {
           if (authData.state?.token) {
             config.headers.Authorization = `Bearer ${authData.state.token}`;
           }
-        } catch (e) {
+        } catch {
           // Ignore parse errors
         }
       }

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, type AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
  */
 router.get('/reports', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
 
     // Check if user is admin
     const user = await prisma.user.findUnique({
@@ -64,7 +64,7 @@ router.get('/reports', authMiddleware, async (req, res, next) => {
 router.post('/reports/:id/review', authMiddleware, async (req, res, next) => {
   try {
     const reportId = parseInt(req.params.id);
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
     const { action } = req.body; // action: 'approve' | 'reject' | 'hide_marker'
 
     // Check if user is admin

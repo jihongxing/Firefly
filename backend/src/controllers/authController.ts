@@ -3,6 +3,7 @@ import jwt, { type SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import prisma from '../config/database';
 import { env } from '../config/env';
+import { type AuthRequest } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import { z } from 'zod';
 
@@ -121,7 +122,7 @@ export class AuthController {
    */
   async getMe(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = (req as AuthRequest).user?.userId;
 
       if (!userId) {
         throw new AppError(401, 'Unauthorized', 'UNAUTHORIZED');

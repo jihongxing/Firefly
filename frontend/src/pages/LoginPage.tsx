@@ -3,6 +3,27 @@ import { useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 
+interface AuthResponse {
+  data: {
+    token: string;
+    user: {
+      id: number;
+      username: string;
+      email?: string;
+      role: string;
+      reputationScore: number;
+    };
+  };
+}
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return '操作失败，请重试';
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
@@ -28,16 +49,12 @@ export default function LoginPage() {
         password: formData.password,
       };
 
-      console.log('Sending request to:', endpoint, payload);
-      const response = await apiClient.post(endpoint, payload);
-      console.log('Response:', response.data);
+      const response = await apiClient.post<AuthResponse>(endpoint, payload);
 
       login(response.data.data.token, response.data.data.user);
       navigate('/');
-    } catch (err: any) {
-      console.error('Auth error:', err);
-      const errorMessage = err.message || err.response?.data?.error?.message || '操作失败，请重试';
-      setError(errorMessage);
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

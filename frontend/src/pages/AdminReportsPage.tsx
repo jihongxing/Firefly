@@ -1,29 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+interface AdminReport {
+  id: number;
+  reason: string;
+  description?: string;
+  createdAt: string;
+  marker: {
+    id: number;
+    title: string;
+    category: string;
+    address: string;
+  };
+  reporter: {
+    id: number;
+    username: string;
+  };
+}
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback;
+};
+
 export default function AdminReportsPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
-  const [selectedReport, setSelectedReport] = useState<any>(null);
   const [adminNote, setAdminNote] = useState('');
+  const isAdmin = user?.role === 'admin';
 
-  // Redirect if not admin
-  if (user?.role !== 'admin') {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate('/');
+    }
+  }, [isAdmin, navigate]);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['adminReports'],
     queryFn: async () => {
-      const response = await apiClient.get('/admin/reports');
+      const response = await apiClient.get<{ data: AdminReport[] }>('/admin/reports');
       return response.data.data;
     },
+    enabled: isAdmin,
   });
 
   const reviewMutation = useMutation({
@@ -36,22 +58,24 @@ export default function AdminReportsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-      setSelectedReport(null);
       setAdminNote('');
       alert('审核完成！');
     },
-    onError: (error: any) => {
-      alert(error.message || '审核失败');
+    onError: (error: unknown) => {
+      alert(getErrorMessage(error, '审核失败'));
     },
   });
 
-  const handleReview = (action: string) => {
-    if (!selectedReport) return;
+  const handleReview = (report: AdminReport, action: string) => {
     if (!confirm(`确定要${action === 'approve' ? '批准' : action === 'reject' ? '拒绝' : '隐藏标记'}吗？`)) {
       return;
     }
-    reviewMutation.mutate({ reportId: selectedReport.id, action });
+    reviewMutation.mutate({ reportId: report.id, action });
   };
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -103,7 +127,7 @@ export default function AdminReportsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {reports.map((report: any) => (
+            {reports.map((report) => (
               <div
                 key={report.id}
                 className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
@@ -148,30 +172,21 @@ export default function AdminReportsPage() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <button
-                    onClick={() => {
-                      setSelectedReport(report);
-                      handleReview('approve');
-                    }}
+                    onClick={() => handleReview(report, 'approve')}
                     disabled={reviewMutation.isPending}
                     className="px-4 py-3 bg-green-50 text-green-600 rounded-xl font-medium hover:bg-green-100 transition disabled:opacity-50"
                   >
                     ✓ 批准
                   </button>
                   <button
-                    onClick={() => {
-                      setSelectedReport(report);
-                      handleReview('reject');
-                    }}
+                    onClick={() => handleReview(report, 'reject')}
                     disabled={reviewMutation.isPending}
                     className="px-4 py-3 bg-gray-50 text-gray-600 rounded-xl font-medium hover:bg-gray-100 transition disabled:opacity-50"
                   >
                     ✕ 拒绝
                   </button>
                   <button
-                    onClick={() => {
-                      setSelectedReport(report);
-                      handleReview('hide_marker');
-                    }}
+                    onClick={() => handleReview(report, 'hide_marker')}
                     disabled={reviewMutation.isPending}
                     className="px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition disabled:opacity-50"
                   >

@@ -43,9 +43,6 @@ Thumbs.db
 uploads/
 backend/uploads/
 
-# Prisma
-backend/prisma/migrations/
-
 # Test
 coverage/
 .nyc_output/

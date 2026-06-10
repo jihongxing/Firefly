@@ -1,8 +1,18 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, type AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 const router = Router();
+
+interface ExistingReportRow {
+  id: number;
+}
+
+interface NewReportRow {
+  id: number;
+  status: string;
+  created_at: Date;
+}
 
 /**
  * GET /api/users/me/points
@@ -10,7 +20,7 @@ const router = Router();
  */
 router.get('/me/points', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -89,7 +99,7 @@ router.get('/me/points', authMiddleware, async (req, res, next) => {
  */
 router.get('/me/badges', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
 
     const markerCount = await prisma.marker.count({
       where: { submittedBy: userId, status: 1 },
@@ -167,7 +177,7 @@ router.get('/me/badges', authMiddleware, async (req, res, next) => {
 router.post('/:id/report', authMiddleware, async (req, res, next) => {
   try {
     const markerId = parseInt(req.params.id);
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
     const { reason, description } = req.body;
 
     // Check if marker exists
@@ -186,7 +196,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
         AND vote_status = 'voting'
         AND vote_deadline > NOW()
       LIMIT 1
-    ` as any[];
+    ` as ExistingReportRow[];
 
     if (existingReport && existingReport.length > 0) {
       const reportId = existingReport[0].id;
@@ -195,7 +205,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
       const alreadyReported = await prisma.$queryRaw`
         SELECT * FROM report_reasons
         WHERE report_id = ${reportId} AND user_id = ${userId}
-      ` as any[];
+      ` as ExistingReportRow[];
 
       if (alreadyReported && alreadyReported.length > 0) {
         return res.status(400).json({
@@ -223,7 +233,7 @@ router.post('/:id/report', authMiddleware, async (req, res, next) => {
         INSERT INTO reports (marker_id, user_id, report_type, reason, status, ip_address, vote_status, vote_deadline, created_at)
         VALUES (${markerId}, ${userId}, 'marker', ${reason}, 'pending', ${req.ip || '0.0.0.0'}, 'voting', NOW() + INTERVAL '48 hours', NOW())
         RETURNING id, status, created_at
-      ` as any[];
+      ` as NewReportRow[];
 
       const newReport = newReportResult[0];
 

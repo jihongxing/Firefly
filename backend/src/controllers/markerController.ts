@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import markerService from '../services/markerService';
+import { type AuthRequest } from '../middleware/auth';
 import { GetMarkersQuerySchema, SubmitMarkerSchema } from '../types/marker';
 import { AppError } from '../middleware/errorHandler';
 import { generateFingerprint } from '../utils/geo';
@@ -53,7 +54,7 @@ export class MarkerController {
         req.get('user-agent') || 'unknown'
       );
 
-      const userId = (req as any).user?.userId;
+      const userId = (req as AuthRequest).user?.userId;
 
       const result = await markerService.submitMarker({
         ...data,

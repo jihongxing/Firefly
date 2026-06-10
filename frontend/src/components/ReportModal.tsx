@@ -7,6 +7,10 @@ interface ReportModalProps {
   onClose: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback;
+};
+
 export default function ReportModal({ markerId, onClose }: ReportModalProps) {
   const queryClient = useQueryClient();
   const [reason, setReason] = useState('');
@@ -25,8 +29,8 @@ export default function ReportModal({ markerId, onClose }: ReportModalProps) {
       alert('举报已提交，感谢你的反馈！');
       onClose();
     },
-    onError: (error: any) => {
-      alert(error.message || '举报失败，请重试');
+    onError: (error: unknown) => {
+      alert(getErrorMessage(error, '举报失败，请重试'));
     },
   });
 

@@ -1,59 +1,131 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+interface UserMarker {
+  id: number;
+  title: string;
+  address: string;
+  consensusStatus?: string;
+  consensus_status?: string;
+  createdAt?: string;
+  created_at?: string;
+}
+
+interface UserFeedback {
+  id: number;
+  markerId?: number;
+  marker_id?: number;
+  feedbackType?: string;
+  feedback_type?: string;
+  createdAt?: string;
+  created_at?: string;
+  comment?: string;
+  marker: {
+    id: number;
+    title: string;
+    address: string;
+  };
+}
+
+interface PointsData {
+  points: number;
+  level: string;
+  levelName: string;
+  nextLevel?: string | null;
+  nextLevelPoints?: number | null;
+  pointsToNextLevel?: number | null;
+  stats?: {
+    daysActive: number;
+    markersSubmitted: number;
+    feedbackGiven: number;
+    thanksReceived: number;
+  };
+}
+
+interface BadgeData {
+  total: number;
+  badges: Array<{
+    id: string;
+    icon: string;
+    name: string;
+    description: string;
+  }>;
+}
+
+const formatDate = (value?: string) => {
+  return value ? new Date(value).toLocaleDateString('zh-CN') : '未知日期';
+};
+
+const getMarkerStatus = (marker: UserMarker) => {
+  return marker.consensusStatus ?? marker.consensus_status ?? 'pending';
+};
+
+const getFeedbackType = (feedback: UserFeedback) => {
+  return feedback.feedbackType ?? feedback.feedback_type ?? 'feedback';
+};
+
+const getFeedbackMarkerId = (feedback: UserFeedback) => {
+  return feedback.markerId ?? feedback.marker_id ?? feedback.marker.id;
+};
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuthStore();
 
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const { data: myMarkers = [], isLoading: loadingMarkers } = useQuery({
     queryKey: ['myMarkers', user?.id],
     queryFn: async () => {
-      const response = await apiClient.get('/users/me/markers');
+      const response = await apiClient.get<{ data: UserMarker[] }>('/users/me/markers');
       return response.data.data;
     },
-    enabled: !!user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: myFeedback = [], isLoading: loadingFeedback } = useQuery({
     queryKey: ['myFeedback', user?.id],
     queryFn: async () => {
-      const response = await apiClient.get('/users/me/feedback');
+      const response = await apiClient.get<{ data: UserFeedback[] }>('/users/me/feedback');
       return response.data.data;
     },
-    enabled: !!user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: pointsData } = useQuery({
     queryKey: ['userPoints', user?.id],
     queryFn: async () => {
-      const response = await apiClient.get('/gamification/me/points');
+      const response = await apiClient.get<{ data: PointsData }>('/gamification/me/points');
       return response.data.data;
     },
-    enabled: !!user,
+    enabled: isAuthenticated && !!user,
   });
 
   const { data: badgesData } = useQuery({
     queryKey: ['userBadges', user?.id],
     queryFn: async () => {
-      const response = await apiClient.get('/gamification/me/badges');
+      const response = await apiClient.get<{ data: BadgeData }>('/gamification/me/badges');
       return response.data.data;
     },
-    enabled: !!user,
+    enabled: isAuthenticated && !!user,
   });
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -101,7 +173,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Points Progress */}
-          {pointsData && pointsData.nextLevel && (
+          {pointsData && pointsData.nextLevel && pointsData.nextLevelPoints && (
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">升级进度</span>
@@ -167,7 +239,7 @@ export default function ProfilePage() {
               🏆 已获得徽章 ({badgesData.total})
             </h3>
             <div className="grid grid-cols-3 gap-3">
-              {badgesData.badges.map((badge: any) => (
+              {badgesData.badges.map((badge) => (
                 <div
                   key={badge.id}
                   className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 text-center"
@@ -200,28 +272,32 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {myMarkers.map((marker: any) => (
-                <div
-                  key={marker.id}
-                  onClick={() => navigate(`/markers/${marker.id}`)}
-                  className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold text-gray-900">{marker.title}</h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      marker.consensusStatus === 'verified' ? 'bg-blue-100 text-blue-800' :
-                      marker.consensusStatus === 'disputed' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {marker.consensusStatus}
-                    </span>
+              {myMarkers.map((marker) => {
+                const status = getMarkerStatus(marker);
+
+                return (
+                  <div
+                    key={marker.id}
+                    onClick={() => navigate(`/markers/${marker.id}`)}
+                    className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900">{marker.title}</h4>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        status === 'verified' ? 'bg-blue-100 text-blue-800' :
+                        status === 'disputed' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">{marker.address}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {formatDate(marker.createdAt ?? marker.created_at)}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600">{marker.address}</p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {new Date(marker.createdAt).toLocaleDateString('zh-CN')}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -239,31 +315,35 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {myFeedback.map((feedback: any) => (
-                <div
-                  key={feedback.id}
-                  onClick={() => navigate(`/markers/${feedback.markerId}`)}
-                  className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                      ['confirm', 'support', 'helpful'].includes(feedback.feedbackType) ? 'bg-green-100 text-green-800' :
-                      ['dispute', 'not_helpful', 'outdated'].includes(feedback.feedbackType) ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {feedback.feedbackType}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(feedback.createdAt).toLocaleDateString('zh-CN')}
-                    </span>
+              {myFeedback.map((feedback) => {
+                const feedbackType = getFeedbackType(feedback);
+
+                return (
+                  <div
+                    key={feedback.id}
+                    onClick={() => navigate(`/markers/${getFeedbackMarkerId(feedback)}`)}
+                    className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                        ['confirm', 'support', 'helpful'].includes(feedbackType) ? 'bg-green-100 text-green-800' :
+                        ['dispute', 'not_helpful', 'outdated'].includes(feedbackType) ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {feedbackType}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(feedback.createdAt ?? feedback.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 font-medium">{feedback.marker.title}</p>
+                    <p className="text-xs text-gray-500 mt-1">{feedback.marker.address}</p>
+                    {feedback.comment && (
+                      <p className="text-sm text-gray-600 mt-2 italic">"{feedback.comment}"</p>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-700 font-medium">{feedback.marker.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">{feedback.marker.address}</p>
-                  {feedback.comment && (
-                    <p className="text-sm text-gray-600 mt-2 italic">"{feedback.comment}"</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -1,32 +1,72 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+type VoteType = 'support' | 'oppose' | 'need_info';
+
+interface CommunityReportReason {
+  reason: string;
+  username?: string;
+  description?: string;
+  created_at?: string;
+}
+
+interface CommunityReport {
+  id: number;
+  marker_title: string;
+  marker_address: string;
+  marker_category: string;
+  seconds_remaining: number;
+  user_vote: VoteType | null;
+  reasons?: CommunityReportReason[];
+  reporter_count?: number;
+  support_weight?: number;
+  oppose_weight?: number;
+}
+
+interface CommunityReportsResponse {
+  data: CommunityReport[];
+  canVote?: boolean;
+  userLevel?: keyof typeof levelInfo;
+}
+
+const levelInfo = {
+  angel: { icon: '👑', name: '守护天使', weight: 3, colorClass: 'bg-purple-100 text-purple-800' },
+  star: { icon: '⭐', name: '星光守护者', weight: 2, colorClass: 'bg-yellow-100 text-yellow-800' },
+  firefly: { icon: '🔥', name: '萤火守护者', weight: 1, colorClass: 'bg-orange-100 text-orange-800' },
+  sprout: { icon: '🌱', name: '新芽守护者', weight: 0, colorClass: 'bg-green-100 text-green-800' },
+} as const;
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback;
+};
+
 export default function CommunityVotesPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
-  const [selectedReport, setSelectedReport] = useState<any>(null);
   const [voteReason, setVoteReason] = useState('');
 
-  if (!isAuthenticated) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const { data: votingData, isLoading } = useQuery({
     queryKey: ['communityReports'],
     queryFn: async () => {
-      const response = await apiClient.get('/community/reports');
+      const response = await apiClient.get<CommunityReportsResponse>('/community/reports');
       return response.data;
     },
+    enabled: isAuthenticated,
   });
 
   const voteMutation = useMutation({
-    mutationFn: async ({ reportId, voteType }: { reportId: number; voteType: string }) => {
+    mutationFn: async ({ reportId, voteType }: { reportId: number; voteType: VoteType }) => {
       const response = await apiClient.post(`/community/reports/${reportId}/vote`, {
         voteType,
         reason: voteReason,
@@ -35,32 +75,26 @@ export default function CommunityVotesPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['communityReports'] });
-      setSelectedReport(null);
       setVoteReason('');
       alert(`投票成功！获得 ${data.data.pointsEarned} 积分`);
     },
-    onError: (error: any) => {
-      alert(error.message || '投票失败');
+    onError: (error: unknown) => {
+      alert(getErrorMessage(error, '投票失败'));
     },
   });
 
-  const handleVote = (voteType: string) => {
-    if (!selectedReport) return;
-    voteMutation.mutate({ reportId: selectedReport.id, voteType });
+  const handleVote = (report: CommunityReport, voteType: VoteType) => {
+    voteMutation.mutate({ reportId: report.id, voteType });
   };
 
   const reports = votingData?.data || [];
   const canVote = votingData?.canVote || false;
   const userLevel = votingData?.userLevel || 'sprout';
+  const currentLevel = levelInfo[userLevel];
 
-  const levelInfo = {
-    angel: { icon: '👑', name: '守护天使', weight: 3, color: 'purple' },
-    star: { icon: '⭐', name: '星光守护者', weight: 2, color: 'yellow' },
-    firefly: { icon: '🔥', name: '萤火守护者', weight: 1, color: 'orange' },
-    sprout: { icon: '🌱', name: '新芽守护者', weight: 0, color: 'green' },
-  };
-
-  const currentLevel = levelInfo[userLevel as keyof typeof levelInfo];
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -78,7 +112,7 @@ export default function CommunityVotesPage() {
               <h1 className="text-lg font-bold text-gray-900">社区投票</h1>
               <p className="text-xs text-gray-500">参与社区治理，获得积分奖励</p>
             </div>
-            <div className={`px-3 py-1 rounded-full bg-${currentLevel.color}-100 text-${currentLevel.color}-800 text-sm font-medium`}>
+            <div className={`px-3 py-1 rounded-full ${currentLevel.colorClass} text-sm font-medium`}>
               {currentLevel.icon} {currentLevel.name}
             </div>
           </div>
@@ -130,7 +164,7 @@ export default function CommunityVotesPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {reports.map((report: any) => {
+            {reports.map((report) => {
               const hoursRemaining = Math.floor(report.seconds_remaining / 3600);
               const minutesRemaining = Math.floor((report.seconds_remaining % 3600) / 60);
               const hasVoted = report.user_vote !== null;
@@ -138,7 +172,7 @@ export default function CommunityVotesPage() {
               const reporterCount = report.reporter_count || 1;
 
               // Count reasons by type
-              const reasonCounts = reasons.reduce((acc: any, r: any) => {
+              const reasonCounts = reasons.reduce<Record<string, number>>((acc, r) => {
                 acc[r.reason] = (acc[r.reason] || 0) + 1;
                 return acc;
               }, {});
@@ -175,7 +209,7 @@ export default function CommunityVotesPage() {
                       举报原因（{reporterCount}人）:
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {Object.entries(reasonCounts).map(([reason, count]: [string, any]) => (
+                      {Object.entries(reasonCounts).map(([reason, count]) => (
                         <span key={reason} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
                           {reason === 'false_info' ? '信息不实' :
                            reason === 'duplicate' ? '重复标记' :
@@ -221,8 +255,7 @@ export default function CommunityVotesPage() {
                     <div className="grid grid-cols-3 gap-3">
                       <button
                         onClick={() => {
-                          setSelectedReport(report);
-                          handleVote('support');
+                          handleVote(report, 'support');
                         }}
                         disabled={voteMutation.isPending}
                         className="px-4 py-3 bg-green-50 text-green-600 rounded-xl font-medium hover:bg-green-100 transition disabled:opacity-50"
@@ -231,8 +264,7 @@ export default function CommunityVotesPage() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedReport(report);
-                          handleVote('oppose');
+                          handleVote(report, 'oppose');
                         }}
                         disabled={voteMutation.isPending}
                         className="px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition disabled:opacity-50"
@@ -241,8 +273,7 @@ export default function CommunityVotesPage() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedReport(report);
-                          handleVote('need_info');
+                          handleVote(report, 'need_info');
                         }}
                         disabled={voteMutation.isPending}
                         className="px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition disabled:opacity-50"

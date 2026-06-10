@@ -8,6 +8,16 @@ const resources = {
         title: 'Firefly - 萤火互助地图',
         subtitle: '守护流浪动物，共建安全社区',
       },
+      pwa: {
+        title: '把 Firefly 安装到桌面',
+        body: '像工具 App 一样快速打开地图，离线时也能保留基础界面。',
+        install: '安装',
+        dismiss: '暂时关闭',
+        iosBody: '在 iPhone 上可通过分享菜单添加到主屏幕。',
+        iosAction: '分享 → 添加到主屏幕',
+        manualBody: '如果没有出现系统安装按钮，请使用浏览器菜单安装应用。',
+        manualAction: '浏览器菜单 → 安装应用',
+      },
       nav: {
         map: '地图',
         submit: '提交标记',
@@ -179,6 +189,16 @@ const resources = {
         title: 'Firefly - Mutual Aid Map',
         subtitle: 'Coordinate local help for stray animals',
       },
+      pwa: {
+        title: 'Install Firefly',
+        body: 'Open the map like a desktop app and keep the core shell available offline.',
+        install: 'Install',
+        dismiss: 'Dismiss for now',
+        iosBody: 'On iPhone, add Firefly from the browser share menu.',
+        iosAction: 'Share → Add to Home Screen',
+        manualBody: 'If the install button is not available, use your browser menu to install the app.',
+        manualAction: 'Browser menu → Install app',
+      },
       nav: {
         map: 'Map',
         submit: 'Submit',
@@ -349,6 +369,16 @@ const resources = {
       app: {
         title: 'Firefly - सहायता नक्शा',
         subtitle: 'आवारा जानवरों के लिए स्थानीय मदद जोड़ें',
+      },
+      pwa: {
+        title: 'Firefly इंस्टॉल करें',
+        body: 'नक्शे को ऐप की तरह जल्दी खोलें और बेसिक इंटरफ़ेस ऑफ़लाइन भी रखें।',
+        install: 'इंस्टॉल',
+        dismiss: 'अभी बंद करें',
+        iosBody: 'iPhone पर ब्राउज़र शेयर मेनू से होम स्क्रीन में जोड़ें।',
+        iosAction: 'Share → Add to Home Screen',
+        manualBody: 'अगर इंस्टॉल बटन उपलब्ध नहीं है, तो ब्राउज़र मेनू से ऐप इंस्टॉल करें।',
+        manualAction: 'Browser menu → Install app',
       },
       nav: {
         map: 'नक्शा',

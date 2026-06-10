@@ -1,0 +1,27 @@
+{
+  "name": "Firefly - Mutual Aid Map",
+  "short_name": "Firefly",
+  "description": "A location-first mutual aid map for stray animal safety reports and rescue collaboration.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0D1117",
+  "theme_color": "#151B23",
+  "categories": ["utilities", "navigation", "social"],
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

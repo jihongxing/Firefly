@@ -68,24 +68,68 @@ model Feedback {
 }
 
 model Report {
-  id          Int      @id @default(autoincrement())
-  markerId    Int      @map("marker_id")
-  userId      Int?     @map("user_id")
-  reportType  String   @map("report_type")
-  reason      String
-  status      String   @default("pending")
-  reviewedBy  Int?     @map("reviewed_by")
-  reviewedAt  DateTime? @map("reviewed_at")
-  ipAddress   String   @map("ip_address")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id            Int      @id @default(autoincrement())
+  markerId      Int      @map("marker_id")
+  userId        Int?     @map("user_id")
+  reportType    String   @map("report_type")
+  reason        String
+  status        String   @default("pending")
+  reviewedBy    Int?     @map("reviewed_by")
+  reviewedAt    DateTime? @map("reviewed_at")
+  ipAddress     String   @map("ip_address")
+  voteStatus    String?  @default("voting") @map("vote_status")
+  voteDeadline  DateTime? @map("vote_deadline")
+  supportWeight Int?     @default(0) @map("support_weight")
+  opposeWeight  Int?     @default(0) @map("oppose_weight")
+  needInfoCount Int?     @default(0) @map("need_info_count")
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  marker     Marker  @relation(fields: [markerId], references: [id], onDelete: Cascade)
-  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  reviewer   User?   @relation("ReviewedReports", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  marker        Marker         @relation(fields: [markerId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reviewer      User?          @relation("ReviewedReports", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  reasons       ReportReason[]
+  votes         ReportVote[]
 
   @@index([markerId])
   @@index([userId])
+  @@index([voteStatus])
+  @@index([voteDeadline])
   @@map("reports")
+}
+
+model ReportReason {
+  id          Int      @id @default(autoincrement())
+  reportId    Int      @map("report_id")
+  userId      Int      @map("user_id")
+  reason      String   @db.VarChar(50)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, userId])
+  @@index([reportId])
+  @@index([userId])
+  @@map("report_reasons")
+}
+
+model ReportVote {
+  id         Int      @id @default(autoincrement())
+  reportId   Int      @map("report_id")
+  userId     Int      @map("user_id")
+  voteType   String   @map("vote_type") @db.VarChar(20)
+  voteWeight Int      @map("vote_weight")
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, userId])
+  @@index([reportId])
+  @@index([userId])
+  @@map("report_votes")
 }
 
 model Translation {
@@ -120,6 +164,8 @@ model User {
 
   feedback            Feedback[]
   reports             Report[]
+  reportReasons       ReportReason[]
+  reportVotes         ReportVote[]
   reviewedReports     Report[] @relation("ReviewedReports")
   reputationHistory   ReputationHistory[]
   governanceVotes     GovernanceVote[]

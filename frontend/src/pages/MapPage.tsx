@@ -50,6 +50,12 @@ export default function MapPage() {
   const [trackFilter, setTrackFilter] = useState<TrackFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  const applyDefaultLocation = useCallback(() => {
+    if (!config?.map_config) return;
+
+    setMapCenter([config.map_config.default_center.lat, config.map_config.default_center.lng]);
+  }, [config]);
+
   const requestLocation = useCallback(() => {
     if (!config?.map_config) return;
 
@@ -61,7 +67,9 @@ export default function MapPage() {
           setIsLocating(false);
         },
         (error) => {
-          console.warn('Geolocation error:', error);
+          if (error.code !== error.PERMISSION_DENIED) {
+            console.warn('Geolocation error:', error);
+          }
           setMapCenter([config.map_config.default_center.lat, config.map_config.default_center.lng]);
           setIsLocating(false);
         },
@@ -98,9 +106,9 @@ export default function MapPage() {
   useEffect(() => {
     if (config?.map_config) {
       setSearchRadius(config.map_config.default_radius);
-      requestLocation();
+      applyDefaultLocation();
     }
-  }, [config, requestLocation]);
+  }, [applyDefaultLocation, config]);
 
   const filteredMarkers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLocaleLowerCase();

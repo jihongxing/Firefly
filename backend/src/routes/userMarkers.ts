@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, type AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
  */
 router.get('/me/markers', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
 
     const markers = await prisma.marker.findMany({
       where: {
@@ -62,7 +62,7 @@ router.get('/me/markers', authMiddleware, async (req, res, next) => {
  */
 router.get('/me/feedback', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
 
     const feedback = await prisma.feedback.findMany({
       where: {
@@ -110,7 +110,7 @@ router.get('/me/feedback', authMiddleware, async (req, res, next) => {
  */
 router.put('/me/markers/:id', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
     const markerId = parseInt(req.params.id);
     const { title, description, address, category } = req.body;
 
@@ -160,7 +160,7 @@ router.put('/me/markers/:id', authMiddleware, async (req, res, next) => {
  */
 router.delete('/me/markers/:id', authMiddleware, async (req, res, next) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as AuthRequest).user?.userId;
     const markerId = parseInt(req.params.id);
 
     // Check if marker belongs to user
